@@ -13,6 +13,7 @@ var commandWords = ["ping", "start", "play", "day", "night", "lynch", "clear", "
 
 //used to determin if there is already an active game or not.
 var isActiveGame = false;
+var isGameStarted = false;
 
 //Used to determin if it is day or night
 var isDay = true;
@@ -46,92 +47,33 @@ client.on('message', async msg => {
 			break;
 			// !start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'start':
-				if (isActiveGame) {
+				if (isActiveGame && isGameStarted) {
 					channel.send(msg.author + ", there is already an active game");
-				} else {
-					console.log("starting game");
-					isActiveGame=true;
-					
-					fillRoleArray(msg.guild);
-					fillChannelArray(msg.guild);
-					client.channels.find(channel => channel.name === "join-game").send(
-						"@here, " + user.toString() + " wants to start a game, please message !play if you want to join")
-						/*
-						.then(
-						function (joinMessage) { joinMessage.react('👍')
-						}).catch(console.error);
-						*/
-					
-					var role = msg.guild.roles.find(role => role.name === "host");
-					msg.member.addRole(role).catch(console.error);
-					hostID = msg.member;
-					
-					client.channels.find(channel => channel.name === "host").send(
-						"This is for host only messages");
-						
-					/*
-					const emoji = new Array('⏯️', '🛏️', '🚫');
-					client.channels.find(channel => channel.name === "host").send(
-						"Please react with the following to control the game\n" +
-						emoji[0] + "️ - starts the game\n" +
-						emoji[1] + " - begins the night\n" +
-						emoji[2] + " - ends the game\n"
-						).then(
-						async function (hostMessage) { 
-							try {
-								await hostMessage.react(emoji[0]);
-								await hostMessage.react(emoji[1]);
-								await hostMessage.react(emoji[2]);
-							} catch(error) {
-								console.error("one of the emoji'sfailed to react.");
-							}
-							
-							const filter = (reaction, user) => {
-								return emoji.includes(reaction.emoji.name) && user.id !== hostMessage.author.id;
-							};
-							
-							hostMessage.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-								.then(collected => {
-									const reaction = collected.first();
-									switch(reaction.emoji.name) {	
-										case emoji[0]:
-										startGame(msg.guild);
-											hostMessage.reply('you reacted with start.');
-											break;
-										case emoji[1]:
-											hostMessage.reply('you reacted with sleep');
-											break;
-										case emoji[2]:
-											hostMessage.reply('you reacted with end');
-											endGame(msg.guild);
-											break;
-									}
-								})
-								.catch(collected => {
-									console.error("");
-								});
-						});
-						
-						*/
+				} 
+				else if (!isActiveGame && !isGameStarted) {
+					invitePlayers(msg.guild, msg.member);
+				}
+				else {
+					startGame(msg.guild);
 				}
 			break;
 			// !play~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'play':
-				var role = msg.guild.roles.find(role => role.name === "villager");
-				msg.member.addRole(role).catch(console.error);
-				msg.delete(1000);
+				if (isActiveGame) {
+					var role = msg.guild.roles.find(role => role.name === "villager");
+					msg.member.addRole(role).catch(console.error);
+					msg.delete(1000);
+				}
 			break;
 			// !day/night~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'day':
 				if (!isDay) { 
 					isDay = true;
-					
 				}
 			case 'night':
 				if (isDay) {
 					isDay = false;
-				}
-				
+				}	
 			break;
 			// !lynch~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'lynch':
@@ -152,36 +94,40 @@ client.on('message', async msg => {
     }
 });
 
+function invitePlayers(guild, host) {
+	console.log("inviting players");
+	isActiveGame = true;
+	
+	var role = guild.roles.find(role => role.name === "host");
+	host.addRole(role).catch(console.error);
+					
+	fillRoleArray(guild);
+	fillChannelArray(guild);
+	guild.channels.find(channel => channel.name === "join-game").send(
+		"@here, " + host.toString() + " wants to start a game, please message !play if you want to join");
+	
+	client.channels.find(channel => channel.name === "host").send(
+		"This is for host only messages");
+}
+
 function startGame(guild) {
-	guild.channels.find(channel => channel.name === "join-game").fetchMessages({ limit: 1}).then(async function (messages) {
-		const lastMessage = await messages.first();
-		console.log("\n\n");
-		console.log(lastMessage);
-		
-		let filtered = await lastMessage.reactions.filter(a => a._emoji.name == '👍');
-		console.log("\n\n");
-		console.log(filtered);
-		
-		let players = filtered.first().users;
-		console.log("\n\n");
-		console.log(players);
-		
-	});
+	console.log("Starting Game");
+	isGameStarted = true;
+	isDay = true;
+	
+	guild.channels.find(channel => channel.name === "day").send(
+		"Welcome everyone to your first day!");
 }
 
 //Ends the game, cleans up roles, cleares used channels
 function endGame(guild) {
 	console.log("Clearing game");
 	isActiveGame = false;
-	isDay = true;
+	isGameStarted = false;
 	
 	//removes the game roles from every member
 	const everyone = guild.fetchMembers().then(r => {
-		r.members.array().forEach(r => {
-			roleArray.forEach(role => {
-				r.removeRole(role).catch(console.error);
-			})
-		})
+		r.members.array().forEach(user => removeGameRoles(user))
 	});
 	
 	//Removes the chatlog from the used game channels
@@ -191,6 +137,13 @@ function endGame(guild) {
 	
 	roleArray.clear;
 	chanArray.clear;
+}
+
+//removes all game Roles from a user
+function removeGameRoles(user) {
+	roleArray.forEach(role => {
+		user.removeRole(role).catch(console.error);
+	})
 }
 
 //Cleares the last 99 messages from the channel
