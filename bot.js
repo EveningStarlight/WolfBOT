@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fetch = require("node-fetch");
 const client = new Discord.Client();
-client.login('Njg5MTQ2Nzc1MzA2ODk1MzY5.Xm-oow.DCL3dVOd7pXyP_WwVNpIQtKrfg8');
+client.login('Njg5MTQ2Nzc1MzA2ODk1MzY5.XnKrOg.WL_jj5lHKaLuV_kXxS7487PsbR0');
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -28,7 +28,10 @@ client.on('message', async msg => {
 
 	const message = msg.content;
 	const channel = msg.channel;
-	const user = msg.author;
+	const user = msg.member;
+	const guild = msg.guild;
+	const isUserHost = user.roles.has(msg.guild.roles.find(role => role.name === "host").id);
+	
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
@@ -36,6 +39,8 @@ client.on('message', async msg => {
         var args = message.substring(1).split(' ');
         var cmd = args[0];
         cmd = cmd.toLowerCase();
+		
+		
 	   
 	    //The arguments after the first word
         args = args.splice(1);
@@ -48,31 +53,54 @@ client.on('message', async msg => {
 			// !start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'start':
 				if (isActiveGame && isGameStarted) {
-					channel.send(msg.author + ", there is already an active game");
+					channel.send(user + ", there is already an active game");
 				} 
 				else if (!isActiveGame && !isGameStarted) {
-					invitePlayers(msg.guild, msg.member);
+					invitePlayers(guild, msg.member);
 				}
+				else if (isUserHost) {
+					startGame(guild);
+				} 
 				else {
-					startGame(msg.guild);
+					channel.send(user + ", you are not a host");
 				}
 			break;
 			// !play~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'play':
-				if (isActiveGame) {
-					var role = msg.guild.roles.find(role => role.name === "villager");
-					msg.member.addRole(role).catch(console.error);
+				if (isActiveGame && !isGameStarted) {
+					var villagerRole = guild.roles.find(role => role.name === "villager");
+					user.addRole(villagerRole).catch(console.error);
+					msg.delete(1000);
+				}
+				else if (isActiveGame && isGameStarted) {
+					var ghostRole = guild.roles.find(role => role.name === "ghost");
+					user.addRole(ghostRole).catch(console.error);
 					msg.delete(1000);
 				}
 			break;
 			// !day/night~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'day':
-				if (!isDay) { 
+				if (!isDay && isGameStarted && isUserHost) { 
 					isDay = true;
+					
+					var villagerRole = guild.roles.find(role => role.name === "villager");
+					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
+						{ SEND_MESSAGES: true});
+						
+					guild.channels.find(channel => channel.name === "day").send(
+						"The sun rises, and you wake for the day");
 				}
+			break;
 			case 'night':
-				if (isDay) {
+				if (isDay && isGameStarted && isUserHost) {
 					isDay = false;
+					
+					var villagerRole = guild.roles.find(role => role.name === "villager");
+					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
+						{ SEND_MESSAGES: false});
+						
+					guild.channels.find(channel => channel.name === "day").send(
+						"The sun sets, and you go to sleep");
 				}	
 			break;
 			// !lynch~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,7 +109,10 @@ client.on('message', async msg => {
 			break;
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
-				endGame(msg.guild);
+				var hostRole = guild.roles.find(role => role.name === "host");
+				if (user.roles.has(hostRole.id)) {
+					endGame(guild);
+				}
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
@@ -114,9 +145,24 @@ function startGame(guild) {
 	console.log("Starting Game");
 	isGameStarted = true;
 	isDay = true;
+	const dayChannel = guild.channels.find(channel => channel.name === "day");
 	
-	guild.channels.find(channel => channel.name === "day").send(
-		"Welcome everyone to your first day!");
+	dayChannel.send("Welcome everyone to your first day!");
+	
+	guild.channels.find(channel => channel.name === "join-game").send(
+		"A game is in progress, you can spectate as a ghost by using !play");
+	
+	var villagerRole = guild.roles.find(role => role.name === "villager");
+	var ghostRole = guild.roles.find(role => role.name === "ghost");
+	
+	dayChannel.overwritePermissions( 
+		villagerRole, 
+		{ VIEW_CHANNEL: true });
+		
+	dayChannel.overwritePermissions( 
+		ghostRole, 
+		{	VIEW_CHANNEL: true,
+			SEND_MESSAGES: false});
 }
 
 //Ends the game, cleans up roles, cleares used channels
