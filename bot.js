@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fetch = require("node-fetch");
 const client = new Discord.Client();
-client.login('Njg5MTQ2Nzc1MzA2ODk1MzY5.XnKrOg.WL_jj5lHKaLuV_kXxS7487PsbR0');
+client.login('Njg5MTQ2Nzc1MzA2ODk1MzY5.XnLD0A.VahF3UKj06XmzeYUi-ityL6IG64');
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -9,7 +9,9 @@ client.on('ready', async () => {
 });
 
 //The List of recognized commands
-var commandWords = ["ping", "start", "play", "day", "night", "lynch", "clear", "help"];
+var commandWordsBasic = ["ping", "start", "play", "lynch", "help"];
+var commandWordsHost = ["day", "night", "kill", "clear"];
+var commandWords = commandWordsBasic.concat(commandWordsHost);
 
 //used to determin if there is already an active game or not.
 var isActiveGame = false;
@@ -86,6 +88,8 @@ client.on('message', async msg => {
 					var villagerRole = guild.roles.find(role => role.name === "villager");
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
 						{ SEND_MESSAGES: true});
+					guild.channels.find(channel => channel.name === "day-voice").overwritePermissions( villagerRole, 
+						{ SPEAK: true});
 						
 					guild.channels.find(channel => channel.name === "day").send(
 						"The sun rises, and you wake for the day");
@@ -98,6 +102,8 @@ client.on('message', async msg => {
 					var villagerRole = guild.roles.find(role => role.name === "villager");
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
 						{ SEND_MESSAGES: false});
+					guild.channels.find(channel => channel.name === "day-voice").overwritePermissions( villagerRole, 
+						{ SPEAK: false});
 						
 					guild.channels.find(channel => channel.name === "day").send(
 						"The sun sets, and you go to sleep");
@@ -106,6 +112,28 @@ client.on('message', async msg => {
 			// !lynch~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'lynch':
 				channel.send("To be implemented!");
+			break;
+			// !kill~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			case 'kill':
+				//Command must be formatted as !kill @Adam
+				if (isUserHost) { 
+					var killedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
+					var villagerRole = guild.roles.find(role => role.name === "villager");
+					
+					
+					if (killedVillager.roles.has(villagerRole.id)) {
+						msg.delete(1000);
+						channel.send(killedVillager.toString() + " has been killed");
+						
+						killedVillager.removeRole(villagerRole).catch(console.error);
+
+						var ghostRole = guild.roles.find(role => role.name === "ghost");
+						killedVillager.addRole(ghostRole).catch(console.error);
+					}
+					else {
+						msg.reply("That user isn't a villager");
+					}
+				}
 			break;
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
@@ -116,7 +144,14 @@ client.on('message', async msg => {
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
-				msg.reply("The list of commands are: " + commandWords.join(', '));
+				var str = "The list of commands are: "
+				if (isUserHost) {
+					 str += commandWords.join(', ');
+				}
+				else {
+					str += commandWordsBasic.join(', ');
+				}
+				msg.reply(str);
 			break;
 			default:
 				msg.reply(cmd + ' is not a valid command.');
@@ -138,31 +173,40 @@ function invitePlayers(guild, host) {
 		"@here, " + host.toString() + " wants to start a game, please message !play if you want to join");
 	
 	client.channels.find(channel => channel.name === "host").send(
-		"This is for host only messages");
+		"This channel is for hosts to mesage the bot privatly");
 }
 
 function startGame(guild) {
 	console.log("Starting Game");
 	isGameStarted = true;
 	isDay = true;
-	const dayChannel = guild.channels.find(channel => channel.name === "day");
 	
-	dayChannel.send("Welcome everyone to your first day!");
+	const dayChannel = guild.channels.find(channel => channel.name === "day");
+	const dayVoiceChannel = guild.channels.find(channel => channel.name === "day-voice");
+	const villagerRole = guild.roles.find(role => role.name === "villager");
+	const ghostRole = guild.roles.find(role => role.name === "ghost");
+	
+	dayChannel.send("Welcome " + villagerRole.toString() + " to your first day!");
 	
 	guild.channels.find(channel => channel.name === "join-game").send(
 		"A game is in progress, you can spectate as a ghost by using !play");
 	
-	var villagerRole = guild.roles.find(role => role.name === "villager");
-	var ghostRole = guild.roles.find(role => role.name === "ghost");
-	
 	dayChannel.overwritePermissions( 
+		villagerRole, 
+		{ VIEW_CHANNEL: true });
+	dayVoiceChannel.overwritePermissions( 
 		villagerRole, 
 		{ VIEW_CHANNEL: true });
 		
 	dayChannel.overwritePermissions( 
 		ghostRole, 
 		{	VIEW_CHANNEL: true,
-			SEND_MESSAGES: false});
+			SPEAK: true});
+			
+	dayVoiceChannel.overwritePermissions( 
+		ghostRole, 
+		{	VIEW_CHANNEL: true,
+			SPEAK: false});
 }
 
 //Ends the game, cleans up roles, cleares used channels
@@ -180,6 +224,29 @@ function endGame(guild) {
 	chanArray.forEach(chan => {
 		clearChannel(chan);
 	})
+	
+	const dayChannel = guild.channels.find(channel => channel.name === "day");
+	const dayVoiceChannel = guild.channels.find(channel => channel.name === "day-voice");
+	
+	const villagerRole = guild.roles.find(role => role.name === "villager");
+	const ghostRole = guild.roles.find(role => role.name === "ghost");
+	
+	dayChannel.overwritePermissions( 
+		villagerRole, 
+		{ VIEW_CHANNEL: false });
+	dayVoiceChannel.overwritePermissions( 
+		villagerRole, 
+		{ VIEW_CHANNEL: false });
+		
+	dayChannel.overwritePermissions( 
+		ghostRole, 
+		{	VIEW_CHANNEL: false,
+			SPEAK: false});
+			
+	dayVoiceChannel.overwritePermissions( 
+		ghostRole, 
+		{	VIEW_CHANNEL: false,
+			SPEAK: false});
 	
 	roleArray.clear;
 	chanArray.clear;
