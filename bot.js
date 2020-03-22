@@ -23,7 +23,7 @@ var isDay = true;
 var rolesConfirmed = false;
 var pleaseConfirm = false;
 
-var numPlayer = 0;
+var numPlayer = 6;
 var nominated = [];
 var numRoles = 0;
 //An array of all the roles that are used in the game
@@ -111,14 +111,19 @@ client.on('message', async msg => {
 					isDay = true;
 				    var everyoneRole = guild.roles.find(role => role.name === "@everyone");				
 					var villagerRole = guild.roles.find(role => role.name === "Town");
+                    
+                    for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+                        if(channelMember[1].roles.has(villagerRole.id)){
+                            channelMember[1].setMute(false)
+                        }
+                    }
+                    
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
 						{ SEND_MESSAGES: true});
-					guild.channels.find(channel => channel.name === "day-voice").overwritePermissions( villagerRole, 
-						{ SPEAK: true});
                     guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions( everyoneRole, 
 						{ SEND_MESSAGES: false});
 						
-					guild.channels.find(channel => channel.name === "day").send("The sun rises, and you wake for the day");
+					guild.channels.find(channel => channel.name === "day").send(":sunny: The sun rises, and you wake for the day.");
 				}
 			break;
 			case 'night':
@@ -126,14 +131,19 @@ client.on('message', async msg => {
 					isDay = false;
                     var everyoneRole = guild.roles.find(role => role.name === "@everyone");				
 					var villagerRole = guild.roles.find(role => role.name === "Town");
+                    
+                    for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+                        if(channelMember[1].roles.has(villagerRole.id)){
+                            channelMember[1].setMute(true)
+                        }
+                    }
+                    
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( villagerRole, 
 						{ SEND_MESSAGES: false});
-					guild.channels.find(channel => channel.name === "day-voice").overwritePermissions( villagerRole, 
-						{ SPEAK: false});
                     guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions( everyoneRole, 
 						{ SEND_MESSAGES: true});
 						
-					guild.channels.find(channel => channel.name === "day").send("The sun sets, and you go to sleep");
+					guild.channels.find(channel => channel.name === "day").send(":crescent_moon: The sun sets, and you go to sleep.");
 				}	
 			break;
 			// !lynch~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -189,6 +199,8 @@ client.on('message', async msg => {
 						killedVillager.removeRole(villagerRole).catch(console.error);
 
 						killedVillager.addRole(ghostRole).catch(console.error);
+                        
+                        killedVillager.setMute(true)
 					}
                     else if (killedVillager.roles.has(ghostRole.id)) {
 						msg.delete(1000);
@@ -219,6 +231,9 @@ client.on('message', async msg => {
 				}
 			break;
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            case 'mute':
+
+            break;
 			case 'clear':
 				var hostRole = guild.roles.find(role => role.name === "Host");
 				if (user.roles.has(hostRole.id)) {
@@ -304,12 +319,16 @@ function startGame(guild,data) {
         channel.overwritePermissions( 
 		  villagerRole, 
 		  { VIEW_CHANNEL: true });
+        
 		
 
 	   channel.overwritePermissions( 
 		  ghostRole, 
 		  {	VIEW_CHANNEL: true,
 			SPEAK: false});
+        
+        everyoneGetInHere(guild,channel);
+        
     })
     guild.channels.find(channel => channel.name === "join-game").delete();
 	const dayChannel = guild.channels.find(channel => channel.name === "day");
@@ -337,7 +356,14 @@ function endGame(guild) {
     
     rolesIG = [];
     numPlayer = 0;
-
+    
+    let general = guild.channels.find(channel => channel.name === "General");
+    
+    for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+            channelMember[1].setVoiceChannel(general);
+            channelMember[1].setMute(false)
+    }
+    sleep(1000);
 	guild.channels.find(channel => channel.name === "host").delete();
     guild.channels.find(channel => channel.name === "dead").delete();
     guild.channels.find(channel => channel.name === "night-werewolf").delete();
@@ -767,3 +793,11 @@ function sleep(milliseconds) {
   } while (currentDate - date < milliseconds);
 }
 
+function everyoneGetInHere(guild,channel){
+    let general = guild.channels.find(channel => channel.name === "General");
+    
+    for (let member of general.members) {
+            member[1].setVoiceChannel(channel);
+    }
+    
+}
