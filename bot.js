@@ -23,7 +23,7 @@ var isDay = true;
 var rolesConfirmed = false;
 var pleaseConfirm = false;
 
-var numPlayer = 6;
+var numPlayer = 0; //set to 6 for testing
 var nominated = [];
 var numRoles = 0;
 //An array of all the roles that are used in the game
