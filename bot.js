@@ -234,7 +234,16 @@ client.on('message', async msg => {
             break;
 			// !test~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'test':
-				numPlayer = 6;
+				if (isUserHost) {
+					if (args.length == 0 ) {
+						numPlayer = 6;
+					}
+					else if (isUserHost) {
+						numPlayer = parseInt(args[0]);
+					}
+					console.log("numPlayer set to: " + numPlayer);
+				}
+				
 			break;
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
