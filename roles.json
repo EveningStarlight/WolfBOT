@@ -732,7 +732,7 @@
     },
     {
         "roleName": "Sorcerer",
-        "description": "Each night, wake up and select a person. You learn if they are a seer or not.",
+        "description": "Each night, wake up and select a person. You learn their exact role.",
         "category": "Werewolf Support"
     },
     {
