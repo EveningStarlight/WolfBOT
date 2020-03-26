@@ -1,12 +1,5 @@
 {
    "Village":{
-      "Villager":[
-         {
-            "roleName":"Villager",
-            "description":"The villager has no powers, and does not wake up at night.",
-            "category":"Villager"
-         }
-      ],
       "Seer":[
          {
             "roleName":"Seer",
