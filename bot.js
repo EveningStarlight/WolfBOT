@@ -297,7 +297,6 @@ function invitePlayers(guild, host) {
 
 //Starts the game
 //Creates all game channels
-
 function startGame(guild,data) {
 	console.log("Starting Game");
 	
@@ -305,11 +304,11 @@ function startGame(guild,data) {
     const everyoneRole = guild.roles.find(role => role.name === "@everyone");
 	const ghostRole = guild.roles.find(role => role.name === "Dead");
 	
-	
 	isGameStarted = true;
 	isDay = true;
     selectRoles(guild,data);
 	
+	//creates private channel for anyone with a game role
     guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => createUserChannels(user,guild))});
 		
@@ -360,94 +359,25 @@ function endGame(guild) {
 	isActiveGame = false;
 	isGameStarted = false;
 	//removes the game roles from every member
-
-    /*
-    var everyone = guild.fetchMembers().then(r => {
-
-        r.members.array().forEach(user => getOutHere(user,guild))
-	});
-    /*
-    new Promise(function( accept, reject ) {
-       try {
-          if (getOuttaHere(guild)) { 
-            accept(guild);
-          }
-       } catch (exception) {
-          reject(exception);
-       }
-    }).then(delChannel).catch(err => console.log(err));
-    */
     
     getOuttaHere(guild);
     rolesIG = new Array();
     numPlayer = 0;
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    	
+    const hostRole = guild.roles.find(role => role.name === "Host");
 	const villagerRole = guild.roles.find(role => role.name === "Town");
 	const ghostRole = guild.roles.find(role => role.name === "Dead");
-    /*
-    const promise1 = new Promise(function(getOutHere) {
-        
-      getOutHere(guild);
-        
-    });
-
-    promise1.then(function() {
-        
-        delChannel(guild);
-        
-    });
-    
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
-            channelMember[1].setVoiceChannel(general);
-        }
-    }
-
-    
-    
-    const channelMember = guild.channels.find(channel => channel.name === "day-voice").then(r => {
-        r.members.forEach(user => assignRoles(user,guild));
-    });	
-    
-    
-    
-    ['aaa','bbb','ccc'].forEach(function(name){
-    calls.push(function(callback) {
-        conn.collection(name).drop(function(err) {
-            if (err)
-                return callback(err);
-            console.log('dropped');
-            callback(null, name);
-        });
-    }
-    )});
-    
-    async.parallel(function, function(err,result)){
-        
-        
-    }
-    */
     
 	guild.channels.find(channel => channel.name === "host").delete();
     guild.channels.find(channel => channel.name === "dead").delete();
     guild.channels.find(channel => channel.name === "night-werewolf").delete();
     guild.channels.find(channel => channel.name === "day").delete();
 	guild.channels.find(channel => channel.name === "day-voice").delete();
-	
-	const villagerRole = guild.roles.find(role => role.name === "Town");
-	const ghostRole = guild.roles.find(role => role.name === "Dead");
-
+    
+    var everyone = guild.fetchMembers().then(r => {
+		r.members.array().forEach(user => removeUserChannels(user,guild))
+	});
 	roleArray = new Array();
 }
-
-
-function doTheyMatch(item,name){
-    
-}
-
 
 //Creates a privte channel for each player and the host
 function createUserChannels(user,guild){
@@ -456,7 +386,6 @@ function createUserChannels(user,guild){
         guild.createChannel(user.displayName,'text').then(channel => {
             channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
             channel.overwritePermissions(user, { VIEW_CHANNEL: true });
-
         });
     }
 }
@@ -471,7 +400,32 @@ function removeUserChannels(user,guild){
 	})
 }
 
-//Filles the roleArray with the game roles found in the guild
+//This moves everyone from the general voice vhannel to the passed voice channel
+function everyoneGetInHere(guild,channel){
+    var villagerRole = guild.roles.find(role => role.name === "Town");
+    var hostRole = guild.roles.find(role => role.name === "Host");
+
+    let general = guild.channels.find(channel => channel.name === "General");
+    
+    for (let channelMember of general.members) {
+        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
+            channelMember[1].setVoiceChannel(channel);
+        }   
+    }
+}
+
+//Moves all players from game voice channels to the general voice channel
+async function getOuttaHere(guild){
+    let general = guild.channels.find(channel => channel.name === "General");
+    let voiceChannel = guild.channels.find(channel => channel.name === "day-voice");
+    
+    for (let channelMember of voiceChannel.members) {
+		channelMember[1].setVoiceChannel(general);
+		channelMember[1].setMute(false);
+    }
+}
+
+//Fills the roleArray with the game roles found in the guild
 function fillRoleArray(guild) {
 	var role = guild.roles.find(role => role.name === "Host");
 	roleArray.push(role);
@@ -479,6 +433,9 @@ function fillRoleArray(guild) {
 	roleArray.push(role);
 	var role = guild.roles.find(role => role.name === "Dead");
 	roleArray.push(role);
+}
+
+function doTheyMatch(item,name){  
 }
 
 //Selects the roles based on the number of players.
@@ -685,73 +642,6 @@ function assignRoles(user,guild){
 		
         numRoles ++;
     }
-}
-
-//This moves everyone from the general voice vhannel to the passed voice channel
-function everyoneGetInHere(guild,channel){
-    var villagerRole = guild.roles.find(role => role.name === "Town");
-    var hostRole = guild.roles.find(role => role.name === "Host");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    for (let channelMember of general.members) {
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
-            channelMember[1].setVoiceChannel(channel);
-        }
-            
-    }
-    
-}
-
-function getOutHere(user, guild){
-    
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    	
-	const villagerRole = guild.roles.find(role => role.name === "Town");
-	const ghostRole = guild.roles.find(role => role.name === "Dead");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    if(user.roles.has(villagerRole.id) || user.roles.has(hostRole.id) || user.roles.has(ghostRole.id)){
-        user.setVoiceChannel(general);
-    }
-}
-
-async function getOuttaHere(guild){
-    var villagerRole = guild.roles.find(role => role.name === "Town");
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    var deadRole = guild.roles.find(role => role.name === "Dead");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    let voiceChannel = guild.channels.find(channel => channel.name === "day-voice");
-    
-    for await (let channelMember of voiceChannel.members) {
-        
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id) || channelMember[1].roles.has(deadRole.id)){
-           // console.log("Moved Over");
-            //console.log(voiceChannel.members.array())
-            await channelMember[1].setVoiceChannel(general).then(() => console.log("worked 1"));;
-            await channelMember[1].setMute(false).then(() => console.log("worked 2"));;
-            console.log("Yeet")
-        }
-
-            
-    }
-    delChannel(guild);
-    
-}
-
-function delChannel(guild){
-    
-    guild.channels.find(channel => channel.name === "day-voice").delete();
-    
-    var everyone = guild.fetchMembers().then(r => {
-		r.members.array().forEach(user => removeUserChannels(user,guild))
-	});
-    
-    console.log("Yote");
-
-    
 }
 
 //This writes roles from the role array to a new formatted JSON
