@@ -2,16 +2,18 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const fetch = require("node-fetch");
 const client = new Discord.Client();
-client.login('Njg5NjUwNjIzODcxOTc1NDc0.Xne4Lw.4OewkBC40cRajqGJlyEqkiCCiKU');
+client.login(JSON.parse(fs.readFileSync('loginToken.json')).token);
 
+var roleData
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
   client.user.setActivity("villagers", {type: 'WATCHING'});
+  roleData = JSON.parse(fs.readFileSync('roles.json'));
 });
 
 //The List of recognized commands
 var commandWordsBasic = ["ping", "start", "play", "lynch", "help"];
-var commandWordsHost = ["day", "night", "kill", "clear"];
+var commandWordsHost = ["day", "night", "kill", "clear", "test"];
 var commandWords = commandWordsBasic.concat(commandWordsHost);
 
 //used to determin if there is already an active game or not.
@@ -20,17 +22,17 @@ var isGameStarted = false;
 var rolesIG=[];
 //Used to determin if it is day or night
 var isDay = true;
+
+//Used for confirming the bots selection of roles
 var rolesConfirmed = false;
 var pleaseConfirm = false;
 
-var numPlayer = 0; //set to 6 for testing
+var numPlayer = 0;
 var nominated = [];
 var numRoles = 0;
 var count = 0;
 //An array of all the roles that are used in the game
 var roleArray = new Array();
-//An array of all the channels used by the game
-var chanArray = new Array();
 
 //This listens to every message posted in the guild, and checks to see if it is a command
 client.on('message', async msg => {  
@@ -39,11 +41,8 @@ client.on('message', async msg => {
 	const channel = msg.channel;
 	const user = msg.member;
 	const guild = msg.guild;
-	const isUserHost = user.roles.has(msg.guild.roles.find(role => role.name === "Host").id);
-    var data = fs.readFileSync('roles.json');
-    var parsedData = JSON.parse(data);
+	const isUserHost = user.roles.has((guild.roles.find(role => role.name === "Host")).id);
     
-	
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
@@ -52,8 +51,6 @@ client.on('message', async msg => {
         var cmd = args[0];
         cmd = cmd.toLowerCase();
 		
-		
-	   
 	    //The arguments after the first word
         args = args.splice(1);
 
@@ -67,7 +64,7 @@ client.on('message', async msg => {
 					invitePlayers(guild, msg.member);
 				}
 				else if (isUserHost && numPlayer >= 6) {
-					startGame(guild,parsedData);
+					startGame(guild,roleData);
 				} 
 				else if(numPlayer >= 6){
 					channel.send(user + ", you are not a host!");
@@ -83,6 +80,10 @@ client.on('message', async msg => {
                 }
             break;
 			// !play~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			case 'letmein':
+				if (10 > Math.floor(Math.random()*100)) {
+					msg.reply("No");
+				}
 			case 'play':
 			case 'join':
 				if (isActiveGame && !isGameStarted && !user.roles.has(msg.guild.roles.find(role => role.name === "Town").id)){
@@ -108,7 +109,7 @@ client.on('message', async msg => {
                     channel.send(user + ", you are already in the game!");
                 }
 			break;
-			// !day/night~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			// !day~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'day':
 				if (!isDay && isGameStarted && isUserHost) { 
 					isDay = true;
@@ -129,6 +130,7 @@ client.on('message', async msg => {
 					guild.channels.find(channel => channel.name === "day").send(":sunny: The sun rises, and you wake for the day.");
 				}
 			break;
+			// !night~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'night':
 				if (isDay && isGameStarted && isUserHost) {
 					isDay = false;
@@ -198,12 +200,11 @@ client.on('message', async msg => {
 					if (killedVillager.roles.has(villagerRole.id)) {
 						msg.delete(1000);
 						channel.send(killedVillager.toString() + " has been killed");
-						
+
 						await killedVillager.removeRole(villagerRole).catch(console.error);
 
 						killedVillager.addRoles([ghostRole]).catch(console.error);
-                        
-                        killedVillager.setMute(true)
+               killedVillager.setMute(true)
 					}
                     else if (killedVillager.roles.has(ghostRole.id)) {
 						msg.delete(1000);
@@ -217,29 +218,40 @@ client.on('message', async msg => {
 			break;
             // !confirm~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'confirm':
-                var hostRole = guild.roles.find(role => role.name === "Host");
-				if (pleaseConfirm && user.roles.has(hostRole.id)) {
+				if (pleaseConfirm && isUserHost) {
                     numRoles = 0;
 				    const everyone = guild.fetchMembers().then(r => {
 		              r.members.array().forEach(user => assignRoles(user,guild));
                     });	
 				}
 			break;
-            // !refres~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // !refresh~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'refresh':
                 rolesIG=[];
-                var hostRole = guild.roles.find(role => role.name === "Host");
-				if (pleaseConfirm && user.roles.has(hostRole.id)) {
-					selectRoles(guild,parsedData);
+				if (pleaseConfirm && isUserHost) {
+					selectRoles(guild,roleData);
 				}
 			break;
-			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			// !mute~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             case 'mute':
 
             break;
+			// !test~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			case 'test':
+				if (isUserHost) {
+					if (args.length == 0 ) {
+						numPlayer = 6;
+					}
+					else if (isUserHost) {
+						numPlayer = parseInt(args[0]);
+					}
+					console.log("numPlayer set to: " + numPlayer);
+				}
+				
+			break;
+			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
-				var hostRole = guild.roles.find(role => role.name === "Host");
-				if (user.roles.has(hostRole.id)) {
+				if (isUserHost) {
 					endGame(guild);
 
 				}
@@ -262,35 +274,44 @@ client.on('message', async msg => {
     }
 });
 
+//Begins the process of starting a game by inviting players to join
 function invitePlayers(guild, host) {
 	console.log("Inviting Players");
 	isActiveGame = true;
 	
-	var role = guild.roles.find(role => role.name === "Host");
-	host.addRole(role).catch(console.error);
-    const everyoneRole = guild.roles.find(role => role.name === "@everyone");				
+	const hostRole = guild.roles.find(role => role.name === "Host");
+	const everyoneRole = guild.roles.find(role => role.name === "@everyone");	
+	
+	host.addRole(hostRole).catch(console.error);			
 	fillRoleArray(guild);
-	fillChannelArray(guild);
+	
     guild.createChannel('join-game','text').then(channel => {
         channel.send("@here, " + host.toString() + " wants to start a game, please message !play if you want to join")}).catch(console.error);
-	//guild.channels.find(channel => channel.name === "join-game").send("@here, " + host.toString() + " wants to start a game, please message !play if you want to join").catch(console.error);
+		
     guild.createChannel('host','text').then(channel => {
         channel.send("This channel is for hosts to mesage the bot privatly");
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
-        channel.overwritePermissions(role, { VIEW_CHANNEL: true });
-
-
-    })
-	//client.channels.find(channel => channel.name === "host").send("This channel is for hosts to mesage the bot privatly").catch(console.error);
+        channel.overwritePermissions(hostRole, { VIEW_CHANNEL: true });
+    });
 }
 
+//Starts the game
+//Creates all game channels
 function startGame(guild,data) {
 	console.log("Starting Game");
+	
+	const villagerRole = guild.roles.find(role => role.name === "Town");
+    const everyoneRole = guild.roles.find(role => role.name === "@everyone");
+	const ghostRole = guild.roles.find(role => role.name === "Dead");
+	
 	isGameStarted = true;
 	isDay = true;
     selectRoles(guild,data);
-    const everyone = guild.fetchMembers().then(r => {
+	
+	//creates private channel for anyone with a game role
+    guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => createUserChannels(user,guild))});
+		
     guild.createChannel('day','text').then(channel => {
         channel.send("Welcome " + villagerRole.toString() + " to your first day!");
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
@@ -301,8 +322,7 @@ function startGame(guild,data) {
 		ghostRole, 
 		{	VIEW_CHANNEL: true,
 			SEND_MESSAGES: false});
-
-    })
+    });
 
     guild.createChannel('dead','text').then(channel => {
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
@@ -310,21 +330,17 @@ function startGame(guild,data) {
 		ghostRole, 
 		{	VIEW_CHANNEL: true,
 			SEND_MESSAGES: true});
-
-    })
+    });
     
     guild.createChannel('night-werewolf','text').then(channel => {
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
-
-    })
+    });
     
     guild.createChannel('day-voice','voice').then(channel => {
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
         channel.overwritePermissions( 
 		  villagerRole, 
 		  { VIEW_CHANNEL: true });
-        
-		
 
 	   channel.overwritePermissions( 
 		  ghostRole, 
@@ -332,17 +348,9 @@ function startGame(guild,data) {
 			SPEAK: false});
         
         everyoneGetInHere(guild,channel);
-        
-    })
+    });
+	
     guild.channels.find(channel => channel.name === "join-game").delete();
-	const dayChannel = guild.channels.find(channel => channel.name === "day");
-	const dayVoiceChannel = guild.channels.find(channel => channel.name === "day-voice");
-	const villagerRole = guild.roles.find(role => role.name === "Town");
-    const everyoneRole = guild.roles.find(role => role.name === "@everyone");
-	const ghostRole = guild.roles.find(role => role.name === "Dead");
-			
-
-
 }
 
 //Ends the game, cleans up roles, cleares used channels
@@ -351,100 +359,38 @@ function endGame(guild) {
 	isActiveGame = false;
 	isGameStarted = false;
 	//removes the game roles from every member
-
-
-    /*
-    var everyone = guild.fetchMembers().then(r => {
-        r.members.array().forEach(user => getOutHere(user,guild))
-	});
-    /*
-    new Promise(function( accept, reject ) {
-       try {
-          if (getOuttaHere(guild)) { 
-            accept(guild);
-          }
-       } catch (exception) {
-          reject(exception);
-       }
-    }).then(delChannel).catch(err => console.log(err));
-    */
     
     getOuttaHere(guild);
-    
-    rolesIG = [];
+    rolesIG = new Array();
     numPlayer = 0;
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    	
+    const hostRole = guild.roles.find(role => role.name === "Host");
 	const villagerRole = guild.roles.find(role => role.name === "Town");
 	const ghostRole = guild.roles.find(role => role.name === "Dead");
-    /*
-    const promise1 = new Promise(function(getOutHere) {
-        
-      getOutHere(guild);
-        
-    });
-
-    promise1.then(function() {
-        
-        delChannel(guild);
-        
-    });
-    
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
-            channelMember[1].setVoiceChannel(general);
-        }
-    }
-
-    
-    
-    const channelMember = guild.channels.find(channel => channel.name === "day-voice").then(r => {
-        r.members.forEach(user => assignRoles(user,guild));
-    });	
-    
-    
-    
-    ['aaa','bbb','ccc'].forEach(function(name){
-    calls.push(function(callback) {
-        conn.collection(name).drop(function(err) {
-            if (err)
-                return callback(err);
-            console.log('dropped');
-            callback(null, name);
-        });
-    }
-    )});
-    
-    async.parallel(function, function(err,result)){
-        
-        
-    }
-    */
     
 	guild.channels.find(channel => channel.name === "host").delete();
     guild.channels.find(channel => channel.name === "dead").delete();
     guild.channels.find(channel => channel.name === "night-werewolf").delete();
     guild.channels.find(channel => channel.name === "day").delete();
+	guild.channels.find(channel => channel.name === "day-voice").delete();
     
-	roleArray.clear;
-	chanArray.clear;
+    var everyone = guild.fetchMembers().then(r => {
+		r.members.array().forEach(user => removeUserChannels(user,guild))
+	});
+	roleArray = new Array();
 }
 
-
-
+//Creates a privte channel for each player and the host
 function createUserChannels(user,guild){
     const everyoneRole = guild.roles.find(role => role.name === "@everyone");
     if (user.roles.has(guild.roles.find(role => role.name === "Town").id)){
         guild.createChannel(user.displayName,'text').then(channel => {
             channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
             channel.overwritePermissions(user, { VIEW_CHANNEL: true });
-
-        })
+        });
     }
 }
 
+//Deletes individual channels, and removes game roles
 function removeUserChannels(user,guild){
     if (user.roles.has(guild.roles.find(role => role.name === "Town").id) || user.roles.has(guild.roles.find(role => role.name === "Dead").id)){
         guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).delete();
@@ -454,17 +400,32 @@ function removeUserChannels(user,guild){
 	})
 }
 
-//Cleares the last 99 messages from the channel
-async function clearChannel(chan) {
-	try {
-		var fetched = await chan.fetchMessages({limit: 99});
-		chan.bulkDelete(fetched);
-	} catch (error) {
-		console.error("clear function failed");
-	}
+//This moves everyone from the general voice vhannel to the passed voice channel
+function everyoneGetInHere(guild,channel){
+    var villagerRole = guild.roles.find(role => role.name === "Town");
+    var hostRole = guild.roles.find(role => role.name === "Host");
+
+    let general = guild.channels.find(channel => channel.name === "General");
+    
+    for (let channelMember of general.members) {
+        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
+            channelMember[1].setVoiceChannel(channel);
+        }   
+    }
 }
 
-//Filles the roleArray with the game roles found in the guild
+//Moves all players from game voice channels to the general voice channel
+async function getOuttaHere(guild){
+    let general = guild.channels.find(channel => channel.name === "General");
+    let voiceChannel = guild.channels.find(channel => channel.name === "day-voice");
+    
+    for (let channelMember of voiceChannel.members) {
+		channelMember[1].setVoiceChannel(general);
+		channelMember[1].setMute(false);
+    }
+}
+
+//Fills the roleArray with the game roles found in the guild
 function fillRoleArray(guild) {
 	var role = guild.roles.find(role => role.name === "Host");
 	roleArray.push(role);
@@ -474,168 +435,129 @@ function fillRoleArray(guild) {
 	roleArray.push(role);
 }
 
-//Filles the channelArray with the game channels
-function fillChannelArray(guild) {
-	var chan = guild.channels.find(channel => channel.name === "host");
-	chanArray.push(chan);
-	var chan = guild.channels.find(channel => channel.name === "join-game");
-	chanArray.push(chan);
+function doTheyMatch(item,name){  
 }
 
-function selectRoles(guild,data){
+//Selects the roles based on the number of players.
+function selectRoles(guild){
 	var chanHost = guild.channels.find(channel => channel.name === "host");
     if (!rolesConfirmed){
             switch(numPlayer){
             case 6:
-                seer(data);
-                vNegative(data);
-                vSupport(data);
-                vProtective(data);
-                werewolf(data);
-                werewolf(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
+				randomRole(roleData.Village.Seer);
+				randomRole(roleData.Village.Negative);
+				randomRole(roleData.Village.Support);
+				randomRole(roleData.Village.Protective);
+				randomRole(roleData.Werewolf.Werewolf);
+				randomRole(roleData.Werewolf.Werewolf);
             break;   
 
             case 7:
-                seer(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                werewolf(data);
-                werewolf(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Werewolf);
             break;
 
             case 8:
-                seer(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                werewolf(data);
-                werewolf(data);
-                nEvil(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Neutral.Evil);
             break;
 
             case 9:
-                seer(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                werewolf(data);
-                wKilling(data);
-                nEvil(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral.Evil);
             break;
 
             case 10:
-                seer(data);
-                vInvestigative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                werewolf(data);
-                wSupport(data);
-                wKilling(data);
-                nEvil(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n"+rolesIG[9].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Investigative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Support);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral.Evil);
             break;
 
             case 11:
-                seer(data);
-                vInvestigative(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                werewolf(data);
-                wSupport(data);
-                wKilling(data);
-                nRandom(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n"+rolesIG[9].roleName+"\n"+rolesIG[10].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-                    
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Investigative);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Support);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral);
             break;
 
             case 12:
-                seer(data);
-                vInvestigative(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                vKilling(data);
-                werewolf(data);
-                wSupport(data);
-                wKilling(data);
-                nKilling(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n"+rolesIG[9].roleName+"\n"+rolesIG[10].roleName+"\n"+rolesIG[11].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Investigative);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Killing);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Support);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral.Killing);
             break;
 
             case 13:
-                seer(data);
-                vInvestigative(data);
-                vNegative(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                vKilling(data);
-                werewolf(data);
-                wSupport(data);
-                wKilling(data);
-                nKilling(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n"+rolesIG[9].roleName+"\n"+rolesIG[10].roleName+"\n"+rolesIG[11].roleName+"\n"+rolesIG[12].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Investigative);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Killing);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Support);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral.Killing);
             break;
 
             case 14:
-                seer(data);
-                vInvestigative(data);
-                vNegative(data);
-                vSupport(data);
-                vSupport(data);
-                vProtective(data);
-                vProtective(data);
-                vKilling(data);
-                vRandom(data);
-                werewolf(data);
-                wSupport(data);
-                wKilling(data);
-                neutral(data);
-                nKilling(data);
-                pleaseConfirm = true;
-                chanHost.send("The role list is as follows: \n"+rolesIG[0].roleName+"\n"+rolesIG[1].roleName+"\n"+rolesIG[2].roleName+"\n"+rolesIG[3].roleName+"\n"+rolesIG[4].roleName+"\n"+rolesIG[5].roleName+"\n"+rolesIG[6].roleName+"\n"+rolesIG[7].roleName+"\n"+rolesIG[8].roleName+"\n"+rolesIG[9].roleName+"\n"+rolesIG[10].roleName+"\n"+rolesIG[11].roleName+"\n"+rolesIG[12].roleName+"\n"+rolesIG[13].roleName+"\n If that is okay type !confirm if not type !refresh."); 
-                shuffle(rolesIG);
-
+                randomRole(roleData.Village.Seer);
+                randomRole(roleData.Village.Investigative);
+                randomRole(roleData.Village.Negative);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Support);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Protective);
+                randomRole(roleData.Village.Killing);
+                randomRole(roleData.Village);
+                randomRole(roleData.Werewolf.Werewolf);
+                randomRole(roleData.Werewolf.Support);
+                randomRole(roleData.Werewolf.Killing);
+                randomRole(roleData.Neutral);
+                randomRole(roleData.Neutral.Killing);
             break;
 
             case 15:
@@ -659,151 +581,33 @@ function selectRoles(guild,data){
             break;
 
             }
+			pleaseConfirm = true;
+			var str = "The role list is as follows:\n";
+			for (var i=0; i<rolesIG.length; i++) {
+				str += rolesIG[i].roleName + "\n";
+			}
+			str += "If that is okay type !confirm if not type !refresh.";
+			chanHost.send(str);
+			shuffle(rolesIG);
         }
 }
 
-function vNegative(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village Negative"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village Negative",rando)); 
-}
-    
-function vSupport(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village Support"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village Support",rando)); 
-    
-}
-    
-function vProtective(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village Protective"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village Protective",rando)); 
-    
-}
-    
-function vInvestigative(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village Investigative"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village Investigative",rando));
-    
-}
-    
-function vKilling(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village Killing"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village Killing",rando));
-    
+//Selects a random role from the passed data
+function randomRole(array) {
+	if (Array.isArray(array)) {
+		let rando = Math.floor(Math.random()*array.length);
+		rolesIG.push(array[rando]);
+	}
+	else {
+		let newArray = new Array();
+		Object.values(array).forEach(arr => {
+			newArray = newArray.concat(arr);
+		});
+		randomRole(newArray);
+	}
 }
 
-function vRandom(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Village"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Village",rando));
-    
-}
-
-    
-function werewolf(data){
-    rolesIG.push(data[125]);
-}
-
-function seer(data){
-    rolesIG.push(data[37]);    
-}
-    
-function wSupport(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Werewolf Support"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Werewolf Support",rando));
-    
-}
-    
-function wKilling(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Werewolf Killing"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Werewolf Killing",rando));
-    
-}
-    
-function wRandom(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Werewolf"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Werewolf",rando));
-    
-}
-function neutral(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"True Neutral"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"True Neutral",rando));
-    
-}
-    
-
-function nKilling(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Neutral Killing"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Neutral Killing",rando));
-    
-}
-    
-function nEvil(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Neutral Evil"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Neutral Evil",rando));
-    
-}
-    
-function nRandom(data){
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheckNum(roleThing,"Neutral"));
-    var rando = Math.floor(Math.random()*numRoles);
-    numRoles = 0;
-    data.forEach(roleThing => rolesCheck(roleThing,"Neutral",rando));
-    
-}
-
-function rolesCheckNum(roleThing,roleToCompare){
-    if(roleThing.category.includes(roleToCompare)){
-        numRoles ++;
-        
-    }
-    
-}
-function rolesCheck(roleThing,roleToCompare,rando){
-    if(roleThing.category.includes(roleToCompare)){
-        numRoles ++;
-        if(numRoles == rando+1){
-            rolesIG.push(roleThing);
-        }
-    }
-    
-}
-
+//Changes the order of the Array
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -823,86 +627,102 @@ function shuffle(array) {
   return array;
 }
 
+//This gives each user their role from the roleIG array
 function assignRoles(user,guild){
     if (user.roles.has(guild.roles.find(role => role.name === "Town").id)){
-        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).send("Your role is: "+rolesIG[numRoles].roleName+"\n You do: "+rolesIG[numRoles].description);
+        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).send(
+			"Your role is: "+rolesIG[numRoles].roleName+"\n" + 
+			"You do: "+rolesIG[numRoles].description
+		);
+		
+		//This gives access to the werewolf channel if a role should have access to it
         if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf" || rolesIG[numRoles].roleName == "Undercover Wolf" && rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
             guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions(user, { VIEW_CHANNEL: true });
         }
+		
         numRoles ++;
     }
 }
 
-function sleep(milliseconds) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
-}
-
-function everyoneGetInHere(guild,channel){
-    var villagerRole = guild.roles.find(role => role.name === "Town");
-    var hostRole = guild.roles.find(role => role.name === "Host");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    for (let channelMember of general.members) {
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id)){
-            channelMember[1].setVoiceChannel(channel);
-        }
-            
-    }
-    
-}
-
-function getOutHere(user, guild){
-    
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    	
-	const villagerRole = guild.roles.find(role => role.name === "Town");
-	const ghostRole = guild.roles.find(role => role.name === "Dead");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    
-    if(user.roles.has(villagerRole.id) || user.roles.has(hostRole.id) || user.roles.has(ghostRole.id)){
-        user.setVoiceChannel(general);
-    }
-}
-
-async function getOuttaHere(guild){
-    var villagerRole = guild.roles.find(role => role.name === "Town");
-    var hostRole = guild.roles.find(role => role.name === "Host");
-    var deadRole = guild.roles.find(role => role.name === "Dead");
-
-    let general = guild.channels.find(channel => channel.name === "General");
-    let voiceChannel = guild.channels.find(channel => channel.name === "day-voice");
-    
-    for await (let channelMember of voiceChannel.members) {
-        
-        if(channelMember[1].roles.has(villagerRole.id) || channelMember[1].roles.has(hostRole.id) || channelMember[1].roles.has(deadRole.id)){
-           // console.log("Moved Over");
-            //console.log(voiceChannel.members.array())
-            await channelMember[1].setVoiceChannel(general).then(() => console.log("worked 1"));;
-            await channelMember[1].setMute(false).then(() => console.log("worked 2"));;
-            console.log("Yeet")
-        }
-
-            
-    }
-    delChannel(guild);
-    
-}
-
-function delChannel(guild){
-    
-    guild.channels.find(channel => channel.name === "day-voice").delete();
-    
-    var everyone = guild.fetchMembers().then(r => {
-		r.members.array().forEach(user => removeUserChannels(user,guild))
+//This writes roles from the role array to a new formatted JSON
+function writeRoles() {
+	var allRoles = new Object();
+	
+	var village = new Object();
+	allRoles.Village = village;
+	
+	village.Villager = new Array();
+	village.Villager.push(roleData[124]);
+	village.Seer = new Array();
+	village.Seer.push(roleData[37]);
+	
+	var villageNegative = new Array();
+	fillArray(villageNegative, "Village Negative");
+	village.Negative = villageNegative;
+	
+	var villageSupport = new Array();
+	fillArray(villageSupport, "Village Support");
+	village.Support = villageSupport;
+	
+	var villageProtective = new Array();
+	fillArray(villageProtective, "Village Protective");
+	village.Protective = villageProtective;
+	
+	var villageInvestigative = new Array();
+	fillArray(villageInvestigative, "Village Investigative");
+	village.Investigative = villageInvestigative;
+	
+	var villageKilling = new Array();
+	fillArray(villageKilling, "Village Killing");
+	village.Killing = villageKilling;
+	
+	var werewolf = new Object();
+	allRoles.Werewolf = werewolf;
+	
+	werewolf.Werewolf = new Array();
+	werewolf.Werewolf.push(roleData[125]);
+	
+	var werewolfKilling = new Array();
+	fillArray(werewolfKilling, "Werewolf Killing");
+	werewolf.Killing = werewolfKilling;
+	
+	var werewolfSupport = new Array();
+	fillArray(werewolfSupport, "Werewolf Support");
+	werewolf.Support = werewolfSupport;
+	
+	var neutral = new Object();
+	allRoles.Neutral = neutral;
+	
+	var neutralTrue = new Array();
+	fillArray(neutralTrue, "True Neutral");
+	neutral.True = neutralTrue;
+	
+	var neutralEvil = new Array();
+	fillArray(neutralEvil, "Neutral Evil");
+	neutral.Evil = neutralEvil;
+	
+	var neutralKilling = new Array();
+	fillArray(neutralKilling, "Neutral Killing");
+	neutral.Killing = neutralKilling;
+	
+	var vampire = new Object();
+	allRoles.Vampire = vampire;
+	
+	vampire.vampire = new Array();
+	vampire.vampire.push(roleData[38]);
+	
+	fs.writeFile("test.json", JSON.stringify(allRoles), function(err) {
+		if (err) {
+			console.log(err);
+		}
 	});
-    
-    console.log("Yote");
-
-    
 }
+
+//This fills an array with all role types that match the given string
+function fillArray(array, string) {
+	roleData.forEach(roleThing => {
+		if (roleThing.category.includes(string)) {
+			array.push(roleThing);
+		}});
+}
+
