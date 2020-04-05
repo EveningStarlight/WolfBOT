@@ -3,11 +3,21 @@ const fs = require('fs');
 const fetch = require("node-fetch");
 const client = new Discord.Client();
 
-var roleData
+var roleData;
+var allRoles = new Array();
 client.on('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-  client.user.setActivity("villagers", {type: 'WATCHING'});
-  roleData = JSON.parse(fs.readFileSync('roles.json'));
+	console.log(`Logged in as ${client.user.tag}!`);
+	client.user.setActivity("villagers", {type: 'WATCHING'});
+	roleData = JSON.parse(fs.readFileSync('roles.json'));
+  
+	let roleSuper = Object.values(roleData);
+	let roleSub = new Array();
+	roleSuper.forEach(sup => {
+		roleSub = roleSub.concat(Object.values(sup));
+	});
+	roleSub.forEach(sub => {
+		allRoles = allRoles.concat(Object.values(sub));
+	});
 });
 client.login(JSON.parse(fs.readFileSync('loginToken.json')).token);
 
@@ -101,6 +111,8 @@ client.on('message', async msg => {
 				}
 			case 'play':
 			case 'join':
+			case 'p':
+			case 'j':
 				if (isActiveGame && !isGameStarted && !user.roles.has(msg.guild.roles.find(role => role.name === "Town").id)){
                     numPlayer += 1;
 					var villagerRole = guild.roles.find(role => role.name === "Town");
@@ -171,17 +183,10 @@ client.on('message', async msg => {
 			break;
             case 'role':
                 output = false;
-                roleData.Village.Negative.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Village.Support.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Village.Killing.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Village.Protective.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Village.Seer.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Werewolf.Werewolf.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Werewolf.Support.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Werewolf.Killing.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Neutral.True.forEach(roleThing =>rolesCheck(roleThing,msg,channel));
-                roleData.Neutral.Evil.forEach(roleThing => rolesCheck(roleThing,msg,channel));
-                roleData.Neutral.Killing.forEach(roleThing => rolesCheck(roleThing,msg,channel));
+				role = roleCheck(msg.content.slice(6));
+				if (role != null) {
+					printRole(role, channel);
+				}
                 msg.delete(1000);
             break;
             // !second~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -575,7 +580,7 @@ function fillRoleArray(guild) {
 function selectRoles(guild){
 	var chanHost = guild.channels.find(channel => channel.name === "host");
     if (!rolesConfirmed){
-            switch(numPlayer){
+		switch(numPlayer){
             case 6:
 				randomRole(roleData.Village.Seer);
 				randomRole(roleData.Village.Negative);
@@ -761,95 +766,90 @@ function selectRoles(guild){
 
             break;
 
-            }
-			pleaseConfirm = true;
-			var str = "The role list is as follows:\n";
-			for (var i=0; i<rolesIG.length; i++) {
-				str += rolesIG[i].roleName + "\n";
-			}
-			str += "If that is okay type !confirm if not type !refresh.";
-			chanHost.send(str);
-			shuffle(rolesIG);
-        }
+		}
+		pleaseConfirm = true;
+		var str = "The role list is as follows:\n";
+		for (var i=0; i<rolesIG.length; i++) {
+			str += rolesIG[i].roleName + "\n";
+		}
+		str += "If that is okay type !confirm if not type !refresh.";
+		chanHost.send(str);
+		shuffle(rolesIG);
+	}
 }
-
-
-
 
 function outputGroups(channel){
 	var chanHost = channel;
-            chanHost.send("This game includes:");
-            switch(numPlayer){
-            case 6:
-                chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
+	chanHost.send("This game includes:");
+	switch(numPlayer){
+		case 6:
+			chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
 
-            break;   
+		break;   
 
-            case 7:
-                chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
+		case 7:
+			chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
 
-            break;
+		break;
 
-            case 8:
-                chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf\nNeutral Evil");
+		case 8:
+			chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf\nNeutral Evil");
 
-            break;
+		break;
 
-            case 9:
-                chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Killing\nNeutral Evil");
+		case 9:
+			chanHost.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Killing\nNeutral Evil");
 
-            break;
+		break;
 
-            case 10:
-                chanHost.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Evil");
-                    
-            break;
+		case 10:
+			chanHost.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Evil");
+				
+		break;
 
-            case 11:
-                chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Random");
+		case 11:
+			chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Random");
 
-            break;
+		break;
 
-            case 12:
-                chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
+		case 12:
+			chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
 
-            break;
+		break;
 
-            case 13:
-                chanHost.send("Seer\nVillage Negative\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
+		case 13:
+			chanHost.send("Seer\nVillage Negative\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
 
-            break;
+		break;
 
-            case 14:
-                chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Killing\nTrue Neutral\nNeutral Killing");
+		case 14:
+			chanHost.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Killing\nTrue Neutral\nNeutral Killing");
 
-            break;
+		break;
 
-            case 15:
-                chanHost.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
+		case 15:
+			chanHost.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
 
-            break;
+		break;
 
-            case 16:
-                chanHost.send("Seer\nVillage Investigative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
+		case 16:
+			chanHost.send("Seer\nVillage Investigative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
 
-            break;
+		break;
 
-            case 17:
-                chanHost.send("Seer\nVillage Investigative\nVillage Negative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
+		case 17:
+			chanHost.send("Seer\nVillage Investigative\nVillage Negative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
 
-            break;
+		break;
 
-            case 18:
+		case 18:
 
-            break;
+		break;
 
-            case 19:
+		case 19:
 
-            break;
-
-
-}
+		break;
+	}
 }
 
 //Selects a random role from the passed data
@@ -869,33 +869,31 @@ function randomRole(array) {
 
 //Changes the order of the Array
 function shuffle(array) {
-  var currentIndex = array.length, temporaryValue, randomIndex;
+	var currentIndex = array.length, temporaryValue, randomIndex;
 
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
 
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
 
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
 
-  return array;
+	return array;
 }
 
 //This gives each user their role from the roleIG array
 function assignRoles(user,guild){
     if (user.roles.has(guild.roles.find(role => role.name === "Town").id)){
-        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).send(
-			"Your role is: "+rolesIG[numRoles].roleName+"\n" + 
-			"You do: "+rolesIG[numRoles].description
-		);
-        const everyoneRole = guild.roles.find(role => role.name === "@everyone");
-	    const ghostRole = guild.roles.find(role => role.name === "Dead");
+		let userChannel = guild.channels.find(channel => channel.name === user.displayName.toLowerCase());
+		userChannel.send("Your role is:");
+		printRole(rolesIG[numRoles], userChannel);
+		
 		//This gives access to the werewolf channel if a role should have access to it
         if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf"){
             if(rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
@@ -938,8 +936,7 @@ function assignRoles(user,guild){
                 channel.overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});});
             
         createdUWolfChannel = true;
-        
-		
+
         numRoles ++;
     }
 }
@@ -954,88 +951,27 @@ function everyoneGetInHere(guild,channel){
     
 }
 
-//This writes roles from the role array to a new formatted JSON
-function writeRoles() {
-	var allRoles = new Object();
-	
-	var village = new Object();
-	allRoles.Village = village;
-	
-	village.Villager = new Array();
-	village.Villager.push(roleData[124]);
-	village.Seer = new Array();
-	village.Seer.push(roleData[37]);
-	
-	var villageNegative = new Array();
-	fillArray(villageNegative, "Village Negative");
-	village.Negative = villageNegative;
-	
-	var villageSupport = new Array();
-	fillArray(villageSupport, "Village Support");
-	village.Support = villageSupport;
-	
-	var villageProtective = new Array();
-	fillArray(villageProtective, "Village Protective");
-	village.Protective = villageProtective;
-	
-	var villageInvestigative = new Array();
-	fillArray(villageInvestigative, "Village Investigative");
-	village.Investigative = villageInvestigative;
-	
-	var villageKilling = new Array();
-	fillArray(villageKilling, "Village Killing");
-	village.Killing = villageKilling;
-	
-	var werewolf = new Object();
-	allRoles.Werewolf = werewolf;
-	
-	werewolf.Werewolf = new Array();
-	werewolf.Werewolf.push(roleData[125]);
-	
-	var werewolfKilling = new Array();
-	fillArray(werewolfKilling, "Werewolf Killing");
-	werewolf.Killing = werewolfKilling;
-	
-	var werewolfSupport = new Array();
-	fillArray(werewolfSupport, "Werewolf Support");
-	werewolf.Support = werewolfSupport;
-	
-	var neutral = new Object();
-	allRoles.Neutral = neutral;
-	
-	var neutralTrue = new Array();
-	fillArray(neutralTrue, "True Neutral");
-	neutral.True = neutralTrue;
-	
-	var neutralEvil = new Array();
-	fillArray(neutralEvil, "Neutral Evil");
-	neutral.Evil = neutralEvil;
-	
-	var neutralKilling = new Array();
-	fillArray(neutralKilling, "Neutral Killing");
-	neutral.Killing = neutralKilling;
-	
-	var vampire = new Object();
-	allRoles.Vampire = vampire;
-	
-	vampire.vampire = new Array();
-	vampire.vampire.push(roleData[38]);
-	
-	fs.writeFile("test.json", JSON.stringify(allRoles), function(err) {
-		if (err) {
-			console.log(err);
+//This finds a role given a specific string
+function roleCheck(roleString) {
+	for (let i = 0; i < allRoles.length; i++) {
+		if (allRoles[i].roleName.toLowerCase() == roleString.toLowerCase()) {
+			return allRoles[i];
 		}
-	});
+	}
+	return null;
 }
 
-function rolesCheck(roleThing, msg,channel){
-    var curRoleName = msg.content.slice(6);
-    if (roleThing.roleName.toLowerCase() == curRoleName.toLowerCase() && !output){
-        channel.send(roleThing.roleName+'\n'+roleThing.description);
-        output = true;
-    }
+//This prints a role in a formatted block
+async function printRole(role, channel) {
+	const embed = await new Discord.RichEmbed()
+		.setTitle(role.roleName)
+		.setColor(0x00AE86)
+		.addField("Description:", role.description)
+		.addField("Category:", role.category)
+		.addField("Seen as:", role.seenAs)
+		.addField("Objective: ", role.winCon);
+	await channel.send({embed});
 }
-
 
 //This fills an array with all role types that match the given string
 function fillArray(array, string) {
@@ -1087,19 +1023,14 @@ async function getOuttaHere(guild){
         
     }
     delChannel(guild);        
-
 }
 
 function delChannel(guild){
-    
     guild.channels.find(channel => channel.name === "day-voice").delete();
     /*
     var everyone = guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => removeUserChannels(user,guild))
 	});
     */
-    
     console.log("Yote");
-
-    
 }
