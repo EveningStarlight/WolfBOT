@@ -38,8 +38,11 @@ var abstains = 0;
 var numPlayer = 0;
 var nominated = [];
 var numRoles = 0;
+var createdMediumChannel = false;
+var createdUWolfChannel = false;
 //An array of all the roles that are used in the game
 var roleArray = new Array();
+var skipped = false;
 
 //This listens to every message posted in the guild, and checks to see if it is a command
 client.on('message', async msg => {  
@@ -49,9 +52,18 @@ client.on('message', async msg => {
 	const user = msg.member;
 	const guild = msg.guild;
 	const isUserHost = user.roles.has((guild.roles.find(role => role.name === "Host")).id);
-    
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
+    if(createdUWolfChannel && channel == guild.channels.find(channel => channel.name === 'night-werewolf')){
+        if(message.substring(0, 1) == '!'){
+            guild.channels.find(channel => channel.name === 'undercover-wolf').send(" !"+message.splice(1));
+        }
+        else{
+            guild.channels.find(channel => channel.name === 'undercover-wolf').send(message);          
+        }
+        
+    }
+    
     if (message.substring(0, 1) == '!') {
 	
         var args = message.substring(1).split(' ');
@@ -85,6 +97,7 @@ client.on('message', async msg => {
 			case 'letmein':
 				if (10 > Math.floor(Math.random()*100)) {
 					msg.reply("No");
+                    break;
 				}
 			case 'play':
 			case 'join':
@@ -173,6 +186,7 @@ client.on('message', async msg => {
             break;
             // !second~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'second':
+                /*
                 var lynchedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
                 if (user.roles.has(msg.guild.roles.find(role => role.name === "Town").id) && isDay && lynchedVillager != user && !lynching) {
 					var villagerRole = guild.roles.find(role => role.name === "Town");
@@ -209,9 +223,44 @@ client.on('message', async msg => {
 						msg.reply("We could not find that user.");
 					}
                 }
+                */
+            break;
+            case 'skip':
+                if (user.roles.has(msg.guild.roles.find(role => role.name === "Host").id) && isDay) {
+                    unMuteAll(guild);
+                    clearTimeout(unMutem);
 
+                }
             break;
 			case 'lynch':
+                var lynchedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
+                if (user.roles.has(msg.guild.roles.find(role => role.name === "Host").id) && isDay) {
+					var villagerRole = guild.roles.find(role => role.name === "Town");
+				    var ghostRole = guild.roles.find(role => role.name === "Dead");
+                    if (lynchedVillager.roles.has(villagerRole.id)) {
+                        guild.channels.find(channel => channel.name === "day").send(user + " has been put up on the stand! "+lynchedVillager.toString()+" has 30sec to make their case!");
+                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+                            if(channelMember[1].roles.has(villagerRole.id)){
+                                channelMember[1].setMute(true)
+                            }
+                        }
+                        lynchedVillager.setMute(false);
+                        //let unMutem = setTimeout(unMuteAll,30000,guild);
+                        unMuteAll(unMutem);
+                        msg.delete(1000);
+                        
+					}
+                    else if (lynchedVillager.roles.has(ghostRole.id)) {
+						msg.delete(1000);
+						msg.reply("That user is dead!");
+
+					}
+					else {
+						msg.reply("We could not find that user.");
+					}
+                }
+                
+                /*
                 var lynchedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
                 if (user.roles.has(msg.guild.roles.find(role => role.name === "Town").id) && isDay && lynchedVillager != user && !voting && !lynching){
 					var villagerRole = guild.roles.find(role => role.name === "Town");
@@ -235,7 +284,8 @@ client.on('message', async msg => {
 					else {
 						msg.reply("We could not find that user.");
 					}
-                } 
+                }
+                */
             break;
             case 'inno':
             case 'innocent':
@@ -414,7 +464,8 @@ function startGame(guild,data) {
         channel.overwritePermissions( 
 		ghostRole, 
 		{	VIEW_CHANNEL: true,
-			SEND_MESSAGES: false});
+			SEND_MESSAGES: false,
+            ADD_REACTIONS: true});
         outputGroups(channel);
     });
     guild.createChannel('dead','text').then(channel => {
@@ -422,13 +473,14 @@ function startGame(guild,data) {
         channel.overwritePermissions( 
 		ghostRole, 
 		{	VIEW_CHANNEL: true,
-			SEND_MESSAGES: true});
+			SEND_MESSAGES: true,
+            ADD_REACTIONS: true});
     });
     
     guild.createChannel('night-werewolf','text').then(channel => {
         channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
         channel.overwritePermissions(hostRole, { VIEW_CHANNEL: true });
-        channel.overwritePermissions(ghostRole, { SEND_MESSAGES: false });
+        channel.overwritePermissions(ghostRole, { SEND_MESSAGES: false, ADD_REACTIONS: false });
     });
     
     guild.createChannel('day-voice','voice').then(channel => {
@@ -842,11 +894,51 @@ function assignRoles(user,guild){
 			"Your role is: "+rolesIG[numRoles].roleName+"\n" + 
 			"You do: "+rolesIG[numRoles].description
 		);
-		
+        const everyoneRole = guild.roles.find(role => role.name === "@everyone");
+	    const ghostRole = guild.roles.find(role => role.name === "Dead");
 		//This gives access to the werewolf channel if a role should have access to it
-        if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf" || rolesIG[numRoles].roleName == "Undercover Wolf" && rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
-            guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions(user, { VIEW_CHANNEL: true });
+        if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf"){
+            if(rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
+                guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions(user, { VIEW_CHANNEL: true });
+            }
         }
+        
+        //This checks if a undercover werewolf exists and if it does it creates a channel for it
+        if (rolesIG[numRoles].roleName == "Undercover Wolf" && createdUWolfChannel == false){
+            guild.createChannel('undercover-wolf','text').then(channel => {
+                channel.send("In this channel you will see all messages sent by the wolves! You will not know from whom they come from.");
+                channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
+                channel.overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});});
+            
+            createdUWolfChannel = true;
+        }
+        else if(rolesIG[numRoles].roleName == "Undercover Wolf"){
+            guild.channels.find(channel => channel.name === 'undercover-wolf').overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});
+        }
+
+        //This checks if a medium and if it does it creates a channel for it
+        if (rolesIG[numRoles].roleName == "Medium" && createdMediumChannel == false){
+                guild.createChannel('mediums-visions','text').then(channel => {
+                    channel.send("This is the channel for the mediums visions. The medium can type freely in the channel during the night and recieve reactions from the dead!");
+                    channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
+                    channel.overwritePermissions(user, { VIEW_CHANNEL: true });
+                    channel.overwritePermissions(ghostRole, 
+                    {	VIEW_CHANNEL: true,
+                        SEND_MESSAGES: false,
+                        ADD_REACTIONS: true});});
+            
+            createdMediumChannel = true;
+        }
+        else if(rolesIG[numRoles].roleName == "Medium"){
+            guild.channels.find(channel => channel.name === 'mediums-visions').overwritePermissions(user, { VIEW_CHANNEL: true });
+        }
+        guild.createChannel('undercover-wolf','text').then(channel => {
+                channel.send("In this channel you will see all messages sent by the wolves! You will not know from whom they come from.");
+                channel.overwritePermissions(everyoneRole, { VIEW_CHANNEL: false });
+                channel.overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});});
+            
+        createdUWolfChannel = true;
+        
 		
         numRoles ++;
     }
@@ -960,7 +1052,7 @@ function unMuteAll(guild){
             channelMember[1].setMute(false)
         }
     }
-    setTimeout(muteAllVote,30000,guild);
+    setTimeout(muteAllVote,30000,guild);    
 }
 
 function muteAllVote(guild){
@@ -972,7 +1064,7 @@ function muteAllVote(guild){
         }
     }
     guild.channels.find(channel => channel.name === "host").overwritePermissions( villagerRole, { SEND_MESSAGES: false});
-    voting = true;
+    skipped = true;
 }
 
 async function getOuttaHere(guild){
