@@ -1,12 +1,5 @@
 {
    "Village":{
-      "Villager":[
-         {
-            "roleName":"Villager",
-            "description":"The villager has no powers, and does not wake up at night.",
-            "category":"Villager"
-         }
-      ],
       "Seer":[
          {
             "roleName":"Seer",
@@ -334,11 +327,6 @@
          {
             "roleName":"Hypnotist",
             "description":"Once per game at night select a player. That player will reveal their role to everyone the next morning.",
-            "category":"Village Investigative"
-         },
-         {
-            "roleName":"Paranoid",
-            "description":"Choose a player each night. If the seer also targeted that player you will recieve the same info the seer did, otherwise you see them as bad.",
             "category":"Village Investigative"
          },
          {
