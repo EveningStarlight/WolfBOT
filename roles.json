@@ -3,8 +3,8 @@
       "Drunk":[
          {
             "roleName":"Drunk",
-            "description":"Wake up each night and learn if selected player is good or bad.",
-            "category":"Seer",
+            "description":"Does not know their role till the third night.",
+            "category":"Random",
 			"seenAs":"Good",
 			"winCon":"Kill all Werewolves"
          }
