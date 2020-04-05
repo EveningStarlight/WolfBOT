@@ -44,7 +44,7 @@
             "description":"On the first night choose one person to be your role model if your role model  dies you become a werewolf. Until then you are a villager.",
             "category":"Village Negative",
 			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
+			"winCon":"Kill all Werewolves",
 			"altRole":"Werewolf"
          },
          {
