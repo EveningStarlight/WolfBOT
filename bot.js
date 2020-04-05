@@ -238,15 +238,15 @@ client.on('message', async msg => {
 			case 'second':
                 /*
                 var lynchedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
-                if (user.roles.has(msg.discordRoles.Town.id) && isDay && lynchedVillager != user && !lynching) {
-                    if (lynchedVillager.roles.has(villagerRole.id) && nominated.includes(lynchedVillager) && !nominated.includes([user,lynchedVillager])) {
+                if (user.roles.has(discordRoles.Town.id) && isDay && lynchedVillager != user && !lynching) {
+                    if (lynchedVillager.roles.has(discordRoles.Town.id) && nominated.includes(lynchedVillager) && !nominated.includes([user,lynchedVillager])) {
                       //  nominated.push(lynchedVillager);
                         if (numAlive <= 8){
                             lynching == true;
                             guild.channels.find(channel => channel.name === "day").send(user + " has seconded! "+lynchedVillager.toString()+" has 30sec to make their case!");
                             nominated = [];
                             for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                                if(channelMember[1].roles.has(villagerRole.id)){
+                                if(channelMember[1].roles.has(discordRoles.Town.id)){
                                     channelMember[1].setMute(true)
                                 }
                             }
@@ -424,7 +424,7 @@ client.on('message', async msg => {
 
             break;
             case 'abstain':
-                if (user.roles.has(msg.discordRoles.Town.id) && voting && !voted.includes(user)){
+                if (user.roles.has(discordRoles.Town.id) && voting && !voted.includes(user)){
                     abstains ++;
                     numVoted ++;
                     voted.push(user);
@@ -1149,12 +1149,17 @@ function muteAllVote(guild){
 }
 
 //Moves everyone from the old channel to the new channel
-function moveVoiceChannels(oldChannel, newChannel) {
+async function moveVoiceChannels(oldChannel, newChannel) {
 	console.log("Moving all players from " + oldChannel.name + " to " + newChannel.name);
+	const movePromises = [];
 	for (let channelMember of oldChannel.members) {
-		channelMember[1].setVoiceChannel(newChannel);
+		movePromises.push(channelMember[1].setVoiceChannel(newChannel));
 		channelMember[1].setMute(false);
-    }   
+    }
+	
+	await Promise.all(movePromises)
+		.then(() => console.log('Player successfully moved'))
+		.catch(err => console.log(err));
 }
 
 function myFunction(guild) {
