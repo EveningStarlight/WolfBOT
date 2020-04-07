@@ -24,6 +24,9 @@ var myVar;
 let roleData;
 let allRoles = new Array();
 let discordRoles = null;
+let nominate = new Object();
+nominate.nominations = new Object();
+nominate.accused = new Object();
 
 client.on('ready', async () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -57,22 +60,12 @@ var isActiveGame = false;
 var isGameStarted = false;
 var isDrunk = false;
 var rolesIG=[];
-var nominated=[];
-var nomSec=[];
-var nomThird=[];
-var voted = [];
 //Used to determin if it is day or night
 var isDay = true;
 var numAlive = 0;
 //Used for confirming the bots selection of roles
 var rolesConfirmed = false;
 var pleaseConfirm = false;
-var voting = false;
-var lynching = false;
-var numVoted = 0;
-var guilties = 0;
-var innos = 0;
-var abstains = 0;
 var numPlayer = 0;
 var nominated = [];
 var numRoles = 0;
@@ -81,6 +74,7 @@ var createdUWolfChannel = false;
 //An array of all the roles that are used in the game
 var skipped = false;
 var drunkRole;
+let vote = null;
 
 
 
@@ -95,7 +89,8 @@ client.on('message', async msg => {
 	const channel = msg.channel;
 	const user = msg.member;
 	const guild = msg.guild;
-	const isUserHost = user.roles.has(discordRoles.Host.id);
+	const isUserHost = user.roles.has(discordRoles.Host.id) ||
+						msg.author.id === client.user.id; //gives bot the permissions of Host
 
     if(createdUWolfChannel && channel == guild.channels.find(channel => channel.name === 'night-werewolf')){
         if(message.substring(0, 1) == '!'){
@@ -110,7 +105,7 @@ client.on('message', async msg => {
 	// Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
-	
+		
         var args = message.substring(1).split(' ');
         var cmd = args[0];
         cmd = cmd.toLowerCase();
@@ -140,7 +135,7 @@ client.on('message', async msg => {
 			break;
 			// !play~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'letmein':
-				if (10 > Math.floor(Math.random()*100)) {
+				if (isActiveGame && !isGameStarted && !user.roles.has(discordRoles.Town.id) && 10 > Math.floor(Math.random()*100)) {
 					msg.reply("No");
                     break;
 				}
@@ -203,7 +198,12 @@ client.on('message', async msg => {
 			case 'night':
 				if (isDay && isGameStarted && isUserHost) {
 					isDay = false;
-
+					nominate.nominations = new Object();
+					nominate.accused = new Object();
+					nominate.embed = new Discord.RichEmbed();
+					nominate.message = null;
+					updateNominateEmbed();
+					
                     for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
                         if(channelMember[1].roles.has(discordRoles.Town.id)){
                             channelMember[1].setMute(true)
@@ -234,64 +234,67 @@ client.on('message', async msg => {
 				}
                 msg.delete(1000);
             break;
+            // !nominate~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			case 'nominate':
+				let accused = guild.members.find(user => user.id === msg.mentions.users.first().id);
+				
+				if (isDay && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
+					if (nominate.nominations[user.displayName.toLowerCase()] != null) {
+						nominate.accused[nominate.nominations[user.displayName.toLowerCase()].nominated.displayName.toLowerCase()] = null;
+					}
+					nominate.nominations[user.displayName.toLowerCase()] = new Object();
+					nominate.nominations[user.displayName.toLowerCase()].nominated = accused;
+					nominate.nominations[user.displayName.toLowerCase()].nominations = [user.displayName];
+					nominate.accused[accused.displayName.toLowerCase()] = nominate.nominations[user.displayName.toLowerCase()];
+					
+					if (nominate.message != null) { nominate.message.delete(1000); }
+					await updateNominateEmbed();
+					nominate.message = await guild.channels.find(channel => channel.name === "day").send(nominate.embed);
+					msg.delete(1000);
+				}
+			break;
             // !second~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'second':
-                /*
-                var lynchedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
-                if (user.roles.has(discordRoles.Town.id) && isDay && lynchedVillager != user && !lynching) {
-                    if (lynchedVillager.roles.has(discordRoles.Town.id) && nominated.includes(lynchedVillager) && !nominated.includes([user,lynchedVillager])) {
-                      //  nominated.push(lynchedVillager);
-                        if (numAlive <= 8){
-                            lynching == true;
-                            guild.channels.find(channel => channel.name === "day").send(user + " has seconded! "+lynchedVillager.toString()+" has 30sec to make their case!");
-                            nominated = [];
-                            for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                                if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                    channelMember[1].setMute(true)
-                                }
-                            }
-                            lynchedVillager.setMute(false);
-                            setTimeout(unMuteAll,30000,guild);
-                        }
-                        else{
-                            guild.channels.find(channel => channel.name === "day").send(user + " has seconded "+lynchedVillager.toString()+"!");
-                            guild.channels.find(channel => channel.name === "day").send("If you would like to third type !third "+lynchedVillager.toString()+".");
-                            nomSec.push(lynchedVillager.toString());
-
-                        }
-
-                        
+				let accusedS = guild.members.find(user => user.id === msg.mentions.users.first().id);
+				if (isDay && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
+					let alreadySecond = false;
+					nominate.accused[accusedS.displayName.toLowerCase()].nominations.forEach(nomination => {
+						if (nomination == user.displayName) { alreadySecond = true; }
+					});
+					if (!alreadySecond) {
+						nominate.accused[accusedS.displayName.toLowerCase()].nominations.push(user.displayName);
+						if (nominate.message != null) {nominate.message.delete(1000); }
+						await updateNominateEmbed();
+						nominate.message = await guild.channels.find(channel => channel.name === "day").send(nominate.embed);
+						
+						if ( (nominate.accused[accusedS.displayName.toLowerCase()].nominations.length == 2 && numAlive < 9) ||
+							 (nominate.accused[accusedS.displayName.toLowerCase()].nominations.length == 3 && numAlive < 16)) {
+							beginLynch(guild, accusedS);
+						}
 					}
-                    else if (lynchedVillager.roles.has(discordRoles.Dead.id)) {
-						msg.delete(1000);
-						msg.reply("That user is dead!");
-
-					}
-					else {
-						msg.reply("We could not find that user.");
-					}
-                }
-                */
+				}
+				else {
+					msg.reply("There is nothing to second");
+				}
+				msg.delete(1000);
             break;
             case 'skip':
                 if (isUserHost && isDay) {
                     unMuteAll(guild);
                     myStopFunction();
-
                 }
             break;
             case 'whisper':
-                
                 //guild.members.forEach(member => console.log(member.user.displayName)); 
                 //console.log(getUserFromText('jamie',guild));
-                if (user.roles.has(msg.discordRoles.Town.id) && isDay && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
+                if (user.roles.has(discordRoles.Town.id) && isDay && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
                     const userMentioned = getChannelFromText(args[0].toLowerCase(),guild);
                     const userMen = getUserFromText(args[0],guild);
                     console.log(!userMen);
                     if(!userMentioned || !userMen){
                         msg.reply('we could not find that user!');
                     }
-                    else if(userMen.roles.has(msg.discordRoles.Town.id)){
+                    else if(userMen.roles.has(discordRoles.Town.id)){
                         userMentioned.send(user+" whispered: "+message.replace('!whisper '+args[0]+' ',''))
                         guild.channels.find(channel => channel.name === "day").send(user+" whispered to "+userMen+"!")
                         console.log(user);
@@ -305,70 +308,33 @@ client.on('message', async msg => {
             break;
 			case 'lynch':
                 var lynchedVillager = await guild.members.find(user => user.id === msg.mentions.users.first().id);
-                if (isUserHost && isDay) {
-                    if (lynchedVillager.roles.has(discordRoles.Town.id)) {
-                        guild.channels.find(channel => channel.name === "day").send(
-							lynchedVillager.toString() + " has been put up on the stand! " + 
-							lynchedVillager.toString() + " has 30 seconds to make their case!");
-							
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(true)
-                            }
-                        }
-                        lynchedVillager.setMute(false);
-                        myFunction(guild);
-                        msg.delete(1000);
-                        
-					}
-                    else if (lynchedVillager.roles.has(discordRoles.Dead.id)) {
-						msg.delete(1000);
-						msg.reply("That user is dead!");
-
-					}
-					else {
-						msg.reply("We could not find that user.");
-					}
-                }
+				if (!isUserHost) {
+					msg.reply("You don't have permission to do that");
+				}
+				else if (!isDay) {
+					msg.reply("It is night time");
+				}
+				else if (vote != null) {
+					msg.reply("There is already a vote");
+				}
+				else if (!lynchedVillager.roles.has(discordRoles.Town.id)) {
+					msg.reply("That user is not in the Town");
+				}
+				else {
+					beginLynch(guild, lynchedVillager);
+				}
             break;
             case 'inno':
             case 'innocent':
-                if (user.roles.has(discordRoles.Town.id) && voting && !voted.includes(user)){
-                    innos ++;
-                    numVoted ++;  
-                    voted.push(user);
-                    if(numVoted == numAlive-1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
-                } 
-                else if(isUserHost){
-                    innos ++;
-                    numVoted ++;
-                    voted.push(user);
-                    if(numVoted == numAlive-1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
-                } 
-                else if(voted.includes(user)){
-                    user.reply(", you have already voted!");
+				if (user.roles.has(discordRoles.Town.id) && vote != null && vote.players.remaining.indexOf(user) != -1) {
+					vote.players.innocent.push(vote.players.remaining.splice(vote.players.remaining.indexOf(user), 1));
+					vote.innocent++;
+					await updateVoteEmbed();
+					vote.message.edit(vote.embed);
+				}
+                else if(isUserHost && vote != null){
+                    guild.channels.find(channel => channel.name === "day").send("The Town has decided  " + vote.player + " is innocent");
+					vote = null;
                 }
                 else{
                     msg.delete(1000);
@@ -378,44 +344,18 @@ client.on('message', async msg => {
             break;
 			case 'guilt':
             case 'guilty':
-                if (user.roles.has(discordRoles.Town.id) && voting && !voted.includes(user)){
-                    guilties ++;
-                    numVoted ++; 
-                    voted.push(user);
-                    if(numVoted == numAlive-1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
-
-                }
-                else if(isUserHost){
-                    guilties ++;
-                    numVoted ++;
-                    voted.push(user);
-                    if(numVoted == numAlive-1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
-                } 
-                else if(voted.includes(user)){
-                    user.reply(", you have already voted!");
-                }
+				if (user.roles.has(discordRoles.Town.id) && vote != null && vote.players.remaining.indexOf(user) != -1) {
+					vote.players.guilty.push(vote.players.remaining.splice(vote.players.remaining.indexOf(user), 1));
+					vote.guilty++;
+					await updateVoteEmbed();
+					vote.message.edit(vote.embed);
+				}
+				else if(isUserHost && vote != null){
+					let dayChannel = guild.channels.find(channel => channel.name === "day");
+					dayChannel.send("The Town has decided  that " + vote.player + " is guilty");
+					dayChannel.send("!kill " + vote.player);
+					vote = null;
+                }   
                 else{
                     msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
@@ -424,49 +364,22 @@ client.on('message', async msg => {
 
             break;
             case 'abstain':
-                if (user.roles.has(discordRoles.Town.id) && voting && !voted.includes(user)){
-                    abstains ++;
-                    numVoted ++;
-                    voted.push(user);
-                    if(numVoted == numAlive - 1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
-                }
-                else if(isUserHost){
-                    abstains ++;
-                    numVoted ++;
-                    voted.push(user);
-                    if(numVoted == numAlive - 1){
-                        guild.channels.find(channel => channel.name === "host").send("Innocent: "+innos+"\nGuilty: "+guilties+"\nAbstain: "+abstains);
-                        voting = false;
-                        lynching = false;
-                        voted = [];
-                        for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
-                            if(channelMember[1].roles.has(discordRoles.Town.id)){
-                                channelMember[1].setMute(false)
-                            }
-                        }
-                        guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
-                    }
+				if (user.roles.has(discordRoles.Town.id) && vote != null && vote.players.remaining.indexOf(user) != -1) {
+					vote.players.abstain.push(vote.players.remaining.splice(vote.players.remaining.indexOf(user), 1));
+					vote.abstain++;
+					await updateVoteEmbed();
+					vote.message.edit(vote.embed);
+				}
+                else if(isUserHost && vote != null){
+					let dayChannel = guild.channels.find(channel => channel.name === "day");
+                    dayChannel.send("The Town has decided that " + vote.player + " is guilty");
+					dayChannel.send("!kill " + vote.player);
+					vote = null;
                 }    
-                else if(voted.includes(user)){
-                    user.reply(", you have already voted!");
-                }
                 else{
                     msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
-
-                
             break;
 			// !kill~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'kill':
@@ -536,10 +449,9 @@ client.on('message', async msg => {
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
-				var str = "The list of commands are: "
+				const embed = await new Discord.RichEmbed();
 				if (isUserHost) {
-				    str = "!start - to begin the game \n !kill @name - to kill a player \n !day - allows people to speak in the day channel \n !night - mutes all players and opens the night chats"
-                    const embed = await new Discord.RichEmbed()
+                    embed
                         .setTitle('Host Help')
                         .setColor(0x8eb890)
                         .addField("!start", 'To open a lobby, or to start a full lobby.')
@@ -550,11 +462,9 @@ client.on('message', async msg => {
                         .addField("!skip", "To skip the 30 seconds above and move directly to the 30 seconds of group discussion preiod.")
                         .addField("!clear", "To end an open game, removing all roles, and moving players back to the General voice channel.")
                         .addField("!help", "Clearly does nothing.")
-                    await channel.send({embed});
 				}
-                else if(user.roles.has(msg.discordRoles.Town.id)) {
-				    str = "!start - to begin the game \n !kill @name - to kill a player \n !day - allows people to speak in the day channel \n !night - mutes all players and opens the night chats"
-                    const embed = await new Discord.RichEmbed()
+                else if(user.roles.has(discordRoles.Town.id)) {
+                    embed
                         .setTitle('Player Help')
                         .setColor(0x8eb890)
                         .addField("!role rolename", "Gives a description of the named role.")
@@ -563,20 +473,18 @@ client.on('message', async msg => {
                         .addField("!innocent", "Will vote innocent on an open trial.")
                         .addField("!abstain", "Will abstain on an open trial.")
                         .addField("!help", "Clearly does nothing.")
-                    await channel.send({embed});
 				}
 				else {
-				    str = "!start - to open a game and become a host \n !play (join,letmein,p,j) - to join an open game \n !role rolename - gives a description of the role"
-                    const embed = await new Discord.RichEmbed()
+                    embed
                         .setTitle('Help')
                         .setColor(0x8eb890)
                         .addField("!start", 'To open a lobby, or to start a full lobby.')
                         .addField("!play (join, letmein, p, j)", "Joins an open lobby, or spectates an open game.")
                         .addField("!role rolename", "Gives a description of the named role.")
                         .addField("!help", "Clearly does nothing.")
-                    await channel.send({embed});
+                    
 				}
-				//msg.reply(str);
+				await channel.send({embed});
                 msg.delete(1000);
 			break;
 			default:
@@ -676,11 +584,11 @@ async function endGame(guild) {
 	await moveVoiceChannels(dayVoice, generalVoice);
 	
 	//Deletes all game channels
-	dayVoice.delete();
-	guild.channels.find(channel => channel.name === "host").delete();
-    guild.channels.find(channel => channel.name === "dead").delete();
-    guild.channels.find(channel => channel.name === "night-werewolf").delete();
-    guild.channels.find(channel => channel.name === "day").delete();
+	dayVoice.delete().catch(console.error);
+	guild.channels.find(channel => channel.name === "host").delete().catch(console.error);
+    guild.channels.find(channel => channel.name === "dead").delete().catch(console.error);
+    guild.channels.find(channel => channel.name === "night-werewolf").delete().catch(console.error);
+    guild.channels.find(channel => channel.name === "day").delete().catch(console.error);
 
 	//removes the game roles from every member
     await guild.fetchMembers().then(r => {
@@ -707,7 +615,7 @@ function createUserChannels(user,guild){
 //Deletes individual channels, and removes game roles
 function removeUserChannels(user,guild){
     if (user.roles.has(discordRoles.Town.id) || user.roles.has(discordRoles.Dead.id)){
-        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).delete();
+        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).delete().catch(console.error);
     }
     if (user.roles.has(discordRoles.Town.id)){
         user.removeRole(discordRoles.Town.id).catch(console.error);
@@ -1127,7 +1035,72 @@ async function printRole(role, channel) {
 	await channel.send({embed});
 }
 
-function unMuteAll(guild){
+async function updateNominateEmbed() {
+	nominate.embed = await new Discord.RichEmbed()
+		.setTitle('Nominations')
+		.setColor(0x8eb890);
+	
+	Object.values(nominate.nominations).forEach(nomination => {
+		let string = "First: " + nomination.nominations[0];
+		if (nomination.nominations.length > 1) { string += "\nSecond: " + nomination.nominations[1]; }
+		if (nomination.nominations.length > 2) { string += "\nThird: " + nomination.nominations[2];  }
+		
+		nominate.embed.addField("Nominated: " + nomination.nominated.displayName, string); 
+	});
+}
+
+async function updateVoteEmbed() {
+	vote.embed = await new Discord.RichEmbed()
+		.setTitle('Vote')
+		.setColor(0x8eb890)
+		.addField("Nominated", "Player: " + vote.player)
+		.addField("Votes", 	"Innocent: \t" + vote.innocent + "\n" +
+							"Guilty: \t" + vote.guilty + "\n" +
+							"Abstain: \t" + vote.abstain + "\n")
+		.addField("Innocent", "Players: " + vote.players.innocent.toString())
+		.addField("Guilty", "Players: " + vote.players.guilty.toString())
+		.addField("Abstain", "Players: " + vote.players.abstain.toString())
+		.addField("Remaining", "Players: " + vote.players.remaining.toString());
+}
+
+async function beginLynch(guild, lynchedVillager) {
+	vote = new Object();
+	vote.player = lynchedVillager;
+	vote.innocent = 0;	vote.guilty = 0;	vote.abstain = 0;
+	vote.players = new Object();
+	vote.players.remaining = new Array();
+	vote.players.innocent = new Array();
+	vote.players.guilty = new Array();
+	vote.players.abstain = new Array();
+
+	guild.channels.find(channel => channel.name === "day").send(
+		vote.player.toString() + " has been put up on the stand! " + 
+		vote.player.toString() + " has 30 seconds to make their case!");
+		
+	
+	for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+		if(channelMember[1].roles.has(discordRoles.Town.id) && channelMember[1] != vote.player){
+			channelMember[1].setMute(true)
+		}
+	}
+	
+	const arrayPromises = [];
+	guild.fetchMembers().then(r => {
+		r.members.array().forEach(user => {
+			if (user.roles.has(discordRoles.Town.id) && user != vote.player) {
+				arrayPromises.push(vote.players.remaining.push(user));
+			}
+		})
+	});	
+	await Promise.all(arrayPromises)
+		.catch(err => console.log(err));
+	await updateVoteEmbed();
+	vote.message = await guild.channels.find(channel => channel.name === "host").send(vote.embed);
+	
+	wait30Seconds(guild);
+}
+
+function unMuteTown(guild){
     guild.channels.find(channel => channel.name === "day").send("The town has 30sec to discuss what they heard!");
     for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
         if(channelMember[1].roles.has(discordRoles.Town.id)){
@@ -1162,9 +1135,10 @@ async function moveVoiceChannels(oldChannel, newChannel) {
 		.catch(err => console.log(err));
 }
 
-function myFunction(guild) {
-  myVar = setTimeout(function(){ unMuteAll(guild); }, 30000);
+function wait30Seconds(guild) {
+  myVar = setTimeout(function(){ unMuteTown(guild); }, 30000);
 }
+
 
 function myStopFunction() {
   clearTimeout(myVar);
