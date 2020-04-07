@@ -238,7 +238,7 @@ client.on('message', async msg => {
 			case 'nominate':
 				let accused = guild.members.find(user => user.id === msg.mentions.users.first().id);
 				
-				if (isDay && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
+				if (isDay && vote == null && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
 					if (nominate.nominations[user.displayName.toLowerCase()] != null) {
 						nominate.accused[nominate.nominations[user.displayName.toLowerCase()].nominated.displayName.toLowerCase()] = null;
 					}
@@ -255,8 +255,9 @@ client.on('message', async msg => {
 			break;
             // !second~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'second':
+			case 'third':
 				let accusedS = guild.members.find(user => user.id === msg.mentions.users.first().id);
-				if (isDay && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
+				if (isDay && vote == null && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
 					let alreadySecond = false;
 					nominate.accused[accusedS.displayName.toLowerCase()].nominations.forEach(nomination => {
 						if (nomination == user.displayName) { alreadySecond = true; }
