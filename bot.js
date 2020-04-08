@@ -336,6 +336,12 @@ client.on('message', async msg => {
                 else if(isUserHost && vote != null){
                     guild.channels.find(channel => channel.name === "day").send("The Town has decided  " + vote.player + " is innocent");
 					vote = null;
+					for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+						if(channelMember[1].roles.has(discordRoles.Town.id)){
+							channelMember[1].setMute(false)
+						}
+					}
+					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }
                 else{
                     msg.delete(1000);
@@ -356,6 +362,12 @@ client.on('message', async msg => {
 					dayChannel.send("The Town has decided  that " + vote.player + " is guilty");
 					dayChannel.send("!kill " + vote.player);
 					vote = null;
+					for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+						if(channelMember[1].roles.has(discordRoles.Town.id)){
+							channelMember[1].setMute(false)
+						}
+					}
+					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }   
                 else{
                     msg.delete(1000);
@@ -376,6 +388,12 @@ client.on('message', async msg => {
                     dayChannel.send("The Town has decided that " + vote.player + " is guilty");
 					dayChannel.send("!kill " + vote.player);
 					vote = null;
+					for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
+						if(channelMember[1].roles.has(discordRoles.Town.id)){
+							channelMember[1].setMute(false)
+						}
+					}
+					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }    
                 else{
                     msg.delete(1000);
