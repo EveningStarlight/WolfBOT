@@ -280,7 +280,7 @@ client.on('message', async msg => {
             break;
             case 'skip':
                 if (isUserHost && isDay) {
-                    unMuteAll(guild);
+                    unMuteTown(guild);
                     myStopFunction();
                 }
             break;
@@ -469,6 +469,8 @@ client.on('message', async msg => {
                         .setColor(0x8eb890)
                         .addField("!role rolename", "Gives a description of the named role.")
                         .addField("!whipser playername msg", "To whisper a message to that player.")
+                        .addField("!nominate @name", "Nominate a player named.")
+                        .addField("!second @name", "Second someone that someone else nominated.")
                         .addField("!guilty", "Will vote guilty on an open trial.")
                         .addField("!innocent", "Will vote innocent on an open trial.")
                         .addField("!abstain", "Will abstain on an open trial.")
