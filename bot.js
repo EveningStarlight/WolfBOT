@@ -29,6 +29,8 @@ let nominate = new Object();
 nominate.nominations = new Object();
 nominate.accused = new Object();
 
+let game;
+
 client.on('ready', async () => {
 	console.log(`Logged in as ${client.user.tag}!`);
     //client.user.setAvatar('./WerewolfOnlineGreen.png')
@@ -47,21 +49,15 @@ client.on('ready', async () => {
 	roleSub.forEach(sub => {
 		allRoles = allRoles.concat(Object.values(sub));
 	});
+	
+	newGame();
 });
 client.login(JSON.parse(fs.readFileSync('loginToken.json')).token);
 
-//The List of recognized commands
-var commandWordsBasic = ["ping", "start", "play", "lynch", "help"];
-var commandWordsHost = ["day", "night", "kill", "clear", "test"];
-var commandWords = commandWordsBasic.concat(commandWordsHost);
-var output = false;
 //used to determin if there is already an active game or not.
-var isActiveGame = false;
-var isGameStarted = false;
 var isDrunk = false;
 var rolesIG=[];
 //Used to determin if it is day or night
-var isDay = true;
 var numAlive = 0;
 //Used for confirming the bots selection of roles
 var rolesConfirmed = false;
@@ -116,26 +112,25 @@ client.on('message', async msg => {
 		switch(cmd) {
 			// !start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'start':
-				if (isActiveGame && isGameStarted) {
+				if (game.isActive && game.isStarted) {
 					channel.send(user + ", there is already an active game. Use *!play* to spectate as a ghost.");
 				} 
-				else if (!isActiveGame && !isGameStarted) {
+				else if (!game.isActive && !game.isStarted) {
 					invitePlayers(guild, msg.member);
 				}
-				else if (isUserHost && numPlayer >= 6) {
-					startGame(guild,roleData);
+				else if (isUserHost && game.players.number() >= 6) {
+					startGame(guild);
 				} 
-				else if(numPlayer >= 6){
+				else if(game.players.number() >= 6){
 					channel.send(user + ", you are not a host!");
 				}
                 else if(isUserHost){
-                    channel.send(user + ", there are only ["+numPlayer+"/6] minimum required players!");
+                    channel.send(user + ", there are only [" + game.players.number() + "/6] minimum required players!");
                 }
-                msg.delete(1000);
 			break;
 			// !play~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'letmein':
-				if (isActiveGame && !isGameStarted && !user.roles.has(discordRoles.Town.id) && 10 > Math.floor(Math.random()*100)) {
+				if (game.isActive && !game.isStarted && !user.roles.has(discordRoles.Town.id) && 10 > Math.floor(Math.random()*100)) {
 					msg.reply("No");
                     break;
 				}
@@ -143,21 +138,20 @@ client.on('message', async msg => {
 			case 'join':
 			case 'p':
 			case 'j':
-				if (isActiveGame && !isGameStarted && !user.roles.has(discordRoles.Town.id)){
-                    numPlayer += 1;
+				if (game.isActive && !game.isStarted && !user.roles.has(discordRoles.Town.id)){
+					game.addPlayer(user);
 					user.addRole(discordRoles.Town).catch(console.error);
 
-                    if (numPlayer < 6){
-                        guild.channels.find(channel => channel.name === "join-game").send(user + " has joined the lobby. ["+ numPlayer+"/6] players till the game can begin.").catch(console.error);
+                    if (game.players.number() < 6){
+                        guild.channels.find(channel => channel.name === "join-game").send(user.displayName + " has joined the lobby. ["+ game.players.number() + "/6] players till the game can begin.").catch(console.error);
                     }
                     else {
-                        guild.channels.find(channel => channel.name === "join-game").send(user + " has joined the lobby. ["+ numPlayer +"] players!").catch(console.error);
+                        guild.channels.find(channel => channel.name === "join-game").send(user.displayName + " has joined the lobby. [" + game.players.number() + "] players!").catch(console.error);
 
                     }
-                    console.log(user+" has joined the lobby.");
-
+                    console.log(user.displayName + " has joined the lobby.");
 				}
-				else if (isActiveGame && isGameStarted) {
+				else if (game.isActive && game.isStarted) {
 					user.addRole(discordRoles.Dead).catch(console.error);
 				}
                 else if (user.roles.has(discordRoles.Town.id)){
@@ -166,12 +160,11 @@ client.on('message', async msg => {
                 else{
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
-				msg.delete(1000);
 			break;
 			// !day~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'day':
-				if (!isDay && isGameStarted && isUserHost) { 
-					isDay = true;
+				if (!game.isDay && game.isStarted && isUserHost) { 
+					game.isDay = true;
 
                     for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
                         if(channelMember[1].roles.has(discordRoles.Town.id)){
@@ -185,24 +178,27 @@ client.on('message', async msg => {
                         
                     }
  
-					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, 
+					game.channels.day.overwritePermissions( discordRoles.Town, 
 						{ SEND_MESSAGES: true});
-                    guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions( discordRoles.Everyone, 
+                    game.channels.werewolf.overwritePermissions( discordRoles.Everyone, 
 						{ SEND_MESSAGES: false});
 						
-					guild.channels.find(channel => channel.name === "day").send(":sunny: The sun rises, and you wake for the day.");
-				    msg.delete(1000);
+					game.channels.day.send(":sunny: The sun rises, and you wake for the day.");
 				}
 			break;
 			// !night~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'night':
-				if (isDay && isGameStarted && isUserHost) {
-					isDay = false;
+				if (game.isDay && game.isStarted && isUserHost) {
+					game.isDay = false;
+					
 					nominate.nominations = new Object();
 					nominate.accused = new Object();
 					nominate.embed = new Discord.RichEmbed();
 					nominate.message = null;
 					updateNominateEmbed();
+					
+					game.actions = null;
+					game.updateActions();
 					
                     for (let channelMember of guild.channels.find(channel => channel.name === "day-voice").members) {
                         if(channelMember[1].roles.has(discordRoles.Town.id)){
@@ -216,29 +212,26 @@ client.on('message', async msg => {
                         
                     }
 
-					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, 
+					game.channels.day.overwritePermissions( discordRoles.Town, 
 						{ SEND_MESSAGES: false});
-                    guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions( discordRoles.Everyone, 
+                    game.channels.werewolf.overwritePermissions( discordRoles.Everyone, 
 						{ SEND_MESSAGES: true});
 						
-					guild.channels.find(channel => channel.name === "day").send(":crescent_moon: The sun sets, and you go to sleep.");
-				    msg.delete(1000);
+					game.channels.day.send(":crescent_moon: The sun sets, and you go to sleep.");
 
 				}	
 			break;
             case 'role':
-                output = false;
 				role = roleCheck(msg.content.slice(6));
 				if (role != null) {
 					printRole(role, channel);
 				}
-                msg.delete(1000);
             break;
             // !nominate~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'nominate':
-				let accused = guild.members.find(user => user.id === msg.mentions.users.first().id);
+				let accused = await game.players.find(user => user.id === msg.mentions.users.first().id);
 				
-				if (isDay && vote == null && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
+				if (game.isDay && vote == null && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
 					if (nominate.nominations[user.displayName.toLowerCase()] != null) {
 						nominate.accused[nominate.nominations[user.displayName.toLowerCase()].nominated.displayName.toLowerCase()] = null;
 					}
@@ -250,14 +243,13 @@ client.on('message', async msg => {
 					if (nominate.message != null) { nominate.message.delete(1000); }
 					await updateNominateEmbed();
 					nominate.message = await guild.channels.find(channel => channel.name === "day").send(nominate.embed);
-					msg.delete(1000);
 				}
 			break;
             // !second~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'second':
 			case 'third':
-				let accusedS = guild.members.find(user => user.id === msg.mentions.users.first().id);
-				if (isDay && vote == null && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
+				let accusedS = await game.players.find(user => user.id === msg.mentions.users.first().id);
+				if (game.isDay && vote == null && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
 					let alreadySecond = false;
 					nominate.accused[accusedS.displayName.toLowerCase()].nominations.forEach(nomination => {
 						if (nomination == user.displayName) { alreadySecond = true; }
@@ -277,28 +269,28 @@ client.on('message', async msg => {
 				else {
 					msg.reply("There is nothing to second");
 				}
-				msg.delete(1000);
             break;
+			case 'a':
+			case 'action':
+				if (user.roles.has(discordRoles.Town.id) && game.isStarted && !game.isDay) {
+					game.players.find(player => player.id === user.id).action = args.join(' ');
+					msg.reply("Your action has been set to: " + game.players.find(player => player.id === user.id).action);
+					game.updateActions();
+				}
+			break;
             case 'skip':
-                if (isUserHost || vote.player && isDay) {
+                if (isUserHost || vote.player && game.isDay) {
                     unMuteTown(guild);
                     myStopFunction();
                 }
             break;
             case 'disablebuster':
                 if (isUserHost) {
-                    if(busterBuster){
-                        busterBuster = false;
-                        console.log('busterBuster enabled');
-                    }
-                    else{
-                        busterBuster = true;
-                        console.log('busterBuster disabled');
-                    }
-
+					busterBuster = !busterBuster;
+					console.log("busterBuster: " + busterBuster);
                 }
             case 'whisper':
-                if (user.roles.has(discordRoles.Town.id) && isDay && vote == null && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
+                if (user.roles.has(discordRoles.Town.id) && game.isDay && vote == null && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
                     const userMentioned = getChannelFromText(args[0].toLowerCase(),guild);
                     const userMen = getUserFromText(args[0],guild);
                     if(!userMentioned || !userMen){
@@ -315,16 +307,15 @@ client.on('message', async msg => {
 
                 }
                 else{
-                    msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
             break;
 			case 'lynch':
-                var lynchedVillager = await guild.members.find(user => user.id === msg.mentions.users.first().id);
+                var lynchedVillager = await game.players.find(user => user.id === msg.mentions.users.first().id);
 				if (!isUserHost) {
 					msg.reply("You don't have permission to do that");
 				}
-				else if (!isDay) {
+				else if (!game.isDay) {
 					msg.reply("It is night time");
 				}
 				else if (vote != null) {
@@ -356,7 +347,6 @@ client.on('message', async msg => {
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }
                 else{
-                    msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
 
@@ -382,7 +372,6 @@ client.on('message', async msg => {
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }   
                 else{
-                    msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
 
@@ -408,7 +397,6 @@ client.on('message', async msg => {
 					guild.channels.find(channel => channel.name === "day").overwritePermissions( discordRoles.Town, { SEND_MESSAGES: true});
                 }    
                 else{
-                    msg.delete(1000);
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
             break;
@@ -417,7 +405,7 @@ client.on('message', async msg => {
 				//Command must be formatted as !kill @Adam
 				if (isUserHost) { 
                     numAlive = numAlive - 1;
-					var killedVillager = await guild.members.find( user => user.id ===msg.mentions.users.first().id);
+					var killedVillager = await game.players.find( user => user.id === msg.mentions.users.first().id);
 
 					if (killedVillager.roles.has(discordRoles.Town.id)) {
 						channel.send(killedVillager.toString() + " has been killed");
@@ -436,47 +424,40 @@ client.on('message', async msg => {
                 else{
                     msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
                 }
-				msg.delete(1000);
 			break;
             // !confirm~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'confirm':
 				if (pleaseConfirm && isUserHost) {
                     numRoles = 0;
-				    const everyone = guild.fetchMembers().then(r => {
-		              r.members.array().forEach(user => assignRoles(user,guild));
-                    });	
+		            game.players.forEach(user => assignRoles(user,guild));
 				}
-                msg.delete(1000);
 			break;
             // !refresh~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'refresh':
                 rolesIG=[];
 				if (pleaseConfirm && isUserHost) {
-					selectRoles(guild, numPlayer);
+					selectRoles(guild, game.players.number());
 				}
                 isDrunk = false;
-                msg.delete(1000);
 			break;
 			// !test~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'test':
 				if (isUserHost) {
-					if (args.length == 0 ) {
-						numPlayer = 6;
-					}
-					else if (isUserHost) {
+					let numPlayer = 6;
+					if (args.length != 0 ) {
 						numPlayer = parseInt(args[0]);
 					}
-					console.log("numPlayer set to: " + numPlayer);
+					game.players.number = function() { return numPlayer; };
+					console.log("Number of players set to: " + game.players.number());
 				}
-				msg.delete(1000);
 			break;
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
 				if (isUserHost) {
-                    if(isActiveGame && isGameStarted){
+                    if(game.isActive && game.isStarted){
                         endGame(guild);  
                     }
-                    else if(isActiveGame && !isGameStarted){
+                    else if(game.isActive && !game.isStarted){
                         endGameEarly(guild);
                     }
                     else{
@@ -484,7 +465,6 @@ client.on('message', async msg => {
                     }
 
 				}
-                msg.delete(1000);
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
@@ -526,52 +506,101 @@ client.on('message', async msg => {
                     
 				}
 				await channel.send({embed});
-                msg.delete(1000);
 			break;
 			default:
 				msg.reply(cmd + ' is not a valid command. Use !help for more information!');
-                msg.delete(1000);
 			break;
-		 }
-    }
+		}
+		msg.delete(1000);
+	}
     else if (user.id == '230433217147043840') {
         msg.delete(1000);
     }
 });
 
 //Begins the process of starting a game by inviting players to join
-function invitePlayers(guild, host) {
+async function invitePlayers(guild, host) {
 	console.log("Inviting Players");
-	isActiveGame = true;
+	game.isActive = true;
 	fillDiscordRoles(guild);
 	
 	host.addRole(discordRoles.Host).catch(console.error);			
 	
-    guild.createChannel('join-game','text').then(channel => {
-        channel.send("@here, " + host.toString() + " wants to start a game, please message !play if you want to join")}).catch(console.error);
+	guild.createChannel('join-game','text').then(channel => {
+		game.channels.join = channel;
+        channel.send("@here, " + host.toString() + " wants to start a game, please message !play if you want to join")
+	}).catch(console.error);
 		
-    guild.createChannel('host','text').then(channel => {
+	guild.createChannel('host','text').then(channel => {
+		game.channels.host = channel;
         channel.send("This channel is for hosts to mesage the bot privatly");
 
         channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
         channel.overwritePermissions(discordRoles.Host, { VIEW_CHANNEL: true });
     });
+
+}
+
+//clears the game variables to begin setting up a new game
+function newGame() {
+	game = new Object();
+	game.channels = new Object;
+	game.players = new Array();
+	game.players.number = function() {
+		return game.players.length;
+	}
+	game.players.alive = function() {
+		let numberAlive = 0;
+		game.players.forEach(player => {
+			if (player.isAlive) {numberAlive++;}
+		});
+		return numberAlive;
+	}
+	game.roles = new Array();
+	game.actions = null;
+	game.isActive = false;
+	game.isStarted = false;
+	game.isDay = false;
+	
+	game.addPlayer = function(player) {
+		player.isAlive = true;
+		player.action = "";
+		game.players.push(player);
+	}
+	
+	game.updateActions = async function() {
+		let embed = new Discord.RichEmbed()
+		.setTitle("Player Actions")
+		.setColor(0x8eb890);
+		
+		game.players.forEach(player => {
+			embed.addField(player.displayName + " - " + player.role.roleName, "Action: " + player.action);
+		});
+		
+		if (game.actions == null) {
+			console.log("sending message");
+			game.actions = await game.channels.host.send(embed);
+		}
+		else {
+			console.log("Editing message");
+			game.actions.edit(embed);
+		}
+	}
 }
 
 //Starts the game
 //Creates all game channels
-function startGame(guild,data) {
+function startGame(guild) {
 	console.log("Starting Game");
-	numAlive = numPlayer;
 	
-    console.log("Players Alive: " + numAlive);
-	isGameStarted = true;
-	isDay = true;
-    selectRoles(guild, numPlayer);
-    guild.fetchMembers().then(r => {
-		r.members.array().forEach(user => createUserChannels(user,guild))});
+    console.log("Players Alive: " + game.players.alive());
+	game.isStarted = true;
+	game.isDay = true;
+    selectRoles(guild, game.players.number());
+    game.players.forEach(user => createUserChannels(user, guild));
 		
     guild.createChannel('day','text').then(channel => {
+		game.channels.day = channel;
         channel.send("Welcome " + discordRoles.Town.toString() + " to your first day!");
         channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
     	channel.overwritePermissions(discordRoles.Town, 
@@ -580,10 +609,11 @@ function startGame(guild,data) {
 		{	VIEW_CHANNEL: true,
 			SEND_MESSAGES: false,
             ADD_REACTIONS: true});
-		printPlayGroup(channel, numPlayer);
+		printPlayGroup(channel, game.players.number());
     });
 	
-    guild.createChannel('dead','text').then(channel => {
+	guild.createChannel('dead','text').then(channel => {
+		game.channels.dead = channel;
         channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
         channel.overwritePermissions( discordRoles.Dead, 
 		{	VIEW_CHANNEL: true,
@@ -591,13 +621,15 @@ function startGame(guild,data) {
             ADD_REACTIONS: true});
     });
     
-    guild.createChannel('night-werewolf','text').then(channel => {
+	guild.createChannel('night-werewolf','text').then(channel => {
+		game.channels.werewolf = channel;
         channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
         channel.overwritePermissions(discordRoles.Host, { VIEW_CHANNEL: true });
         channel.overwritePermissions(discordRoles.Dead, { SEND_MESSAGES: false, ADD_REACTIONS: false });
     });
     
-    guild.createChannel('day-voice','voice').then(channel => {
+	guild.createChannel('day-voice','voice').then(channel => {
+		game.channels.voice = channel;
         channel.overwritePermissions(discordRoles.Everyone, 
 		{	VIEW_CHANNEL: false });
         channel.overwritePermissions( discordRoles.Town, 
@@ -612,72 +644,66 @@ function startGame(guild,data) {
 		moveVoiceChannels(generalVoice, dayVoice);
     });
 	
-    guild.channels.find(channel => channel.name === "join-game").delete();
+	game.channels.join.delete();
 }
 
 //ends the game early
 async function endGameEarly(guild) {
 	console.log("Clearing game");
-	isActiveGame = false;
-	isGameStarted = false;
     isDrunk = false;
 	
 	//Deletes all game channels
-	//dayVoice.delete().catch(console.error);
-	guild.channels.find(channel => channel.name === "host").delete().catch(console.error);
-    guild.channels.find(channel => channel.name === "join-game").delete().catch(console.error);
+	game.channels.host.delete().catch(console.error);
+    game.channels.join.delete().catch(console.error);
 
 	//removes the game roles from every member
     await guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => removeUserChannels(user,guild))
 	});
 
-	numPlayer = 0;
 	rolesIG = new Array();
 	discordRoles = null;
+	
+	newGame();
 }
-
-
 
 //Ends the game, cleans up roles, cleares used channels
 async function endGame(guild) {
 	console.log("Clearing game");
-	isActiveGame = false;
-	isGameStarted = false;
     isDrunk = false;
 
 	//Moves all people from day-vice to General
 	let generalVoice = guild.channels.find(channel => channel.name === "General");
-    let dayVoice = guild.channels.find(channel => channel.name === "day-voice");
-	await moveVoiceChannels(dayVoice, generalVoice);
+	await moveVoiceChannels(game.channels.voice, generalVoice);
 	
 	//Deletes all game channels
-	dayVoice.delete().catch(console.error);
-	guild.channels.find(channel => channel.name === "host").delete().catch(console.error);
-    guild.channels.find(channel => channel.name === "dead").delete().catch(console.error);
-    guild.channels.find(channel => channel.name === "night-werewolf").delete().catch(console.error);
-    guild.channels.find(channel => channel.name === "day").delete().catch(console.error);
+	game.channels.voice.delete().catch(console.error);
+	game.channels.host.delete().catch(console.error);
+    game.channels.dead.delete().catch(console.error);
+    game.channels.werewolf.delete().catch(console.error);
+    game.channels.day.delete().catch(console.error);
 
 	//removes the game roles from every member
-    await guild.fetchMembers().then(r => {
+	await guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => removeUserChannels(user,guild))
 	});
 
-	numPlayer = 0;
 	rolesIG = new Array();
 	discordRoles = null;
+	
+	newGame();
 }
 
 
 //Creates a privte channel for each player and the host
-function createUserChannels(user,guild){
-    if (user.roles.has(discordRoles.Town.id)){
-        guild.createChannel(user.displayName,'text').then(channel => {
-            channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
-            channel.overwritePermissions(user, { VIEW_CHANNEL: true });
-            channel.overwritePermissions(discordRoles.Host, { VIEW_CHANNEL: true });
-        });
-    }
+function createUserChannels(user, guild){
+	guild.createChannel(user.displayName,'text').then(channel => {
+		game.channels[user.displayName] = channel;
+		user.channel = channel;
+		channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
+		channel.overwritePermissions(user, { VIEW_CHANNEL: true });
+		channel.overwritePermissions(discordRoles.Host, { VIEW_CHANNEL: true });
+	});
 }
 
 //Deletes individual channels, and removes game roles
@@ -709,6 +735,7 @@ function fillDiscordRoles(guild) {
 	role = guild.roles.find(role => role.name === "@everyone");
 	discordRoles.Everyone = role;
 }
+
 //Selects the roles based on the number of players.
 async function printPlayGroup(channel, players){
 	let string = "For " + players + " players, the game includes: \n" ;
@@ -789,51 +816,49 @@ function shuffle(array) {
 }
 
 //This gives each user their role from the roleIG array
-function assignRoles(user,guild){
-    if (user.roles.has(discordRoles.Town.id)){
-		let userChannel = guild.channels.find(channel => channel.name === user.displayName.toLowerCase());
-		userChannel.send("Your role is:");
-		printRole(rolesIG[numRoles], userChannel);
+function assignRoles(user, guild){
+	user.role = rolesIG[numRoles];
+	user.channel.send("Your role is:");
+	printRole(rolesIG[numRoles], user.channel);
+	
+	//This gives access to the werewolf channel if a role should have access to it
+	if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf"){
+		if(rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
+			guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions(user, { VIEW_CHANNEL: true });
+		}
+	}
+	
+	//This checks if a undercover werewolf exists and if it does it creates a channel for it
+	if (rolesIG[numRoles].roleName == "Undercover Wolf" && createdUWolfChannel == false){
+		guild.createChannel('undercover-wolf','text').then(channel => {
+			channel.send("In this channel you will see all messages sent by the wolves! You will not know from whom they come from.");
+			channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
+			channel.overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});});
 		
-		//This gives access to the werewolf channel if a role should have access to it
-        if(rolesIG[numRoles].category.includes('Werewolf') || rolesIG[numRoles].roleName == "Lone Wolf" || rolesIG[numRoles].roleName == "White Wolf"){
-            if(rolesIG[numRoles].roleName != "Sorcerer" && rolesIG[numRoles].roleName != "Gremlin" && rolesIG[numRoles].roleName != "Harpy" && rolesIG[numRoles].roleName != "Nightmare" && rolesIG[numRoles].roleName != "Mystic Hunter" && rolesIG[numRoles].roleName != "Sloppy Executioner" && rolesIG[numRoles].roleName != "Dream Wolf") {
-                guild.channels.find(channel => channel.name === "night-werewolf").overwritePermissions(user, { VIEW_CHANNEL: true });
-            }
-        }
-        
-        //This checks if a undercover werewolf exists and if it does it creates a channel for it
-        if (rolesIG[numRoles].roleName == "Undercover Wolf" && createdUWolfChannel == false){
-            guild.createChannel('undercover-wolf','text').then(channel => {
-                channel.send("In this channel you will see all messages sent by the wolves! You will not know from whom they come from.");
-                channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
-                channel.overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});});
-            
-            createdUWolfChannel = true;
-        }
-        else if(rolesIG[numRoles].roleName == "Undercover Wolf"){
-            guild.channels.find(channel => channel.name === 'undercover-wolf').overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});
-        }
+		createdUWolfChannel = true;
+	}
+	else if(rolesIG[numRoles].roleName == "Undercover Wolf"){
+		guild.channels.find(channel => channel.name === 'undercover-wolf').overwritePermissions(user, { VIEW_CHANNEL: true, SEND_MESSAGES: false});
+	}
 
-        //This checks if a medium and if it does it creates a channel for it
-        if (rolesIG[numRoles].roleName == "Medium" && createdMediumChannel == false){
-                guild.createChannel('mediums-visions','text').then(channel => {
-                    channel.send("This is the channel for the mediums visions. The medium can type freely in the channel during the night and recieve reactions from the dead!");
-                    channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
-                    channel.overwritePermissions(user, { VIEW_CHANNEL: true });
-                    channel.overwritePermissions(discordRoles.Dead, 
-                    {	VIEW_CHANNEL: true,
-                        SEND_MESSAGES: false,
-                        ADD_REACTIONS: true});});
-            
-            createdMediumChannel = true;
-        }
-        else if(rolesIG[numRoles].roleName == "Medium"){
-            guild.channels.find(channel => channel.name === 'mediums-visions').overwritePermissions(user, { VIEW_CHANNEL: true });
-        }
+	//This checks if a medium and if it does it creates a channel for it
+	if (rolesIG[numRoles].roleName == "Medium" && createdMediumChannel == false){
+			guild.createChannel('mediums-visions','text').then(channel => {
+				channel.send("This is the channel for the mediums visions. The medium can type freely in the channel during the night and recieve reactions from the dead!");
+				channel.overwritePermissions(discordRoles.Everyone, { VIEW_CHANNEL: false });
+				channel.overwritePermissions(user, { VIEW_CHANNEL: true });
+				channel.overwritePermissions(discordRoles.Dead, 
+				{	VIEW_CHANNEL: true,
+					SEND_MESSAGES: false,
+					ADD_REACTIONS: true});});
+		
+		createdMediumChannel = true;
+	}
+	else if(rolesIG[numRoles].roleName == "Medium"){
+		guild.channels.find(channel => channel.name === 'mediums-visions').overwritePermissions(user, { VIEW_CHANNEL: true });
+	}
 
-        numRoles ++;
-    }
+	numRoles ++;
 }
 
 //This finds a role given a specific string
