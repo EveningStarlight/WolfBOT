@@ -75,7 +75,7 @@ var createdUWolfChannel = false;
 var skipped = false;
 var drunkRole;
 let vote = null;
-
+var busterBuster = true;
 
 
 
@@ -280,25 +280,37 @@ client.on('message', async msg => {
 				msg.delete(1000);
             break;
             case 'skip':
-                if (isUserHost && isDay) {
+                if (isUserHost || vote.player && isDay) {
                     unMuteTown(guild);
                     myStopFunction();
                 }
             break;
+            case 'disablebuster':
+                if (isUserHost) {
+                    if(busterBuster){
+                        busterBuster = false;
+                        console.log('busterBuster enabled');
+                    }
+                    else{
+                        busterBuster = true;
+                        console.log('busterBuster disabled');
+                    }
+
+                }
             case 'whisper':
-                //guild.members.forEach(member => console.log(member.user.displayName)); 
-                //console.log(getUserFromText('jamie',guild));
-                if (user.roles.has(discordRoles.Town.id) && isDay && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
+                if (user.roles.has(discordRoles.Town.id) && isDay && vote == null && channel == guild.channels.find(channel => channel.name === user.displayName.toLowerCase())){
                     const userMentioned = getChannelFromText(args[0].toLowerCase(),guild);
                     const userMen = getUserFromText(args[0],guild);
-                    console.log(!userMen);
                     if(!userMentioned || !userMen){
                         msg.reply('we could not find that user!');
                     }
-                    else if(userMen.roles.has(discordRoles.Town.id)){
+                    else if(userMen.roles.has(discordRoles.Town.id) && message != '!whisper '+args[0]){
                         userMentioned.send(user+" whispered: "+message.replace('!whisper '+args[0]+' ',''))
                         guild.channels.find(channel => channel.name === "day").send(user+" whispered to "+userMen+"!")
                         console.log(user);
+                    }
+                    else if(message != '!whisper '+args[0]){
+                        msg.reply('please type a message!');
                     }
 
                 }
@@ -409,9 +421,8 @@ client.on('message', async msg => {
 
 					if (killedVillager.roles.has(discordRoles.Town.id)) {
 						channel.send(killedVillager.toString() + " has been killed");
-						
-						killedVillager.removeRole(discordRoles.Town).catch(console.error);
-						killedVillager.addRole(discordRoles.Dead).catch(console.error);
+						await killedVillager.removeRole(discordRoles.Town).catch(console.error);
+                        await killedVillager.addRole(discordRoles.Dead).catch(console.error);
                         killedVillager.setMute(true)
 					}
                     else if (killedVillager.roles.has(discordRoles.Dead.id)) {
@@ -462,7 +473,16 @@ client.on('message', async msg => {
 			// !clear~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'clear':
 				if (isUserHost) {
-					endGame(guild);
+                    if(isActiveGame && isGameStarted){
+                        endGame(guild);  
+                    }
+                    else if(isActiveGame && !isGameStarted){
+                        endGameEarly(guild);
+                    }
+                    else{
+                        msg.reply("Oak's words echoed... There's a time and place for everything, but not now.");
+                    }
+
 				}
                 msg.delete(1000);
 			break;
@@ -487,7 +507,7 @@ client.on('message', async msg => {
                         .setTitle('Player Help')
                         .setColor(0x8eb890)
                         .addField("!role rolename", "Gives a description of the named role.")
-                        .addField("!whipser playername msg", "To whisper a message to that player.")
+                        .addField("!whisper playername msg", "To whisper a message to that player.")
                         .addField("!nominate @name", "Nominate a player named.")
                         .addField("!second @name", "Second someone that someone else nominated.")
                         .addField("!guilty", "Will vote guilty on an open trial.")
@@ -510,10 +530,15 @@ client.on('message', async msg => {
 			break;
 			default:
 				msg.reply(cmd + ' is not a valid command. Use !help for more information!');
-                //msg.delete(1000);
+                msg.delete(1000);
 			break;
 		 }
     }
+    else if (user.id == '230433217147043840') {
+        msg.delete(1000);
+    }
+    
+    
 });
 
 //Begins the process of starting a game by inviting players to join
@@ -591,6 +616,30 @@ function startGame(guild,data) {
 	
     guild.channels.find(channel => channel.name === "join-game").delete();
 }
+
+//ends the game early
+async function endGameEarly(guild) {
+	console.log("Clearing game");
+	isActiveGame = false;
+	isGameStarted = false;
+    isDrunk = false;
+	
+	//Deletes all game channels
+	//dayVoice.delete().catch(console.error);
+	guild.channels.find(channel => channel.name === "host").delete().catch(console.error);
+    guild.channels.find(channel => channel.name === "join-game").delete().catch(console.error);
+
+	//removes the game roles from every member
+    await guild.fetchMembers().then(r => {
+		r.members.array().forEach(user => removeUserChannels(user,guild))
+	});
+
+	numPlayer = 0;
+	rolesIG = new Array();
+	discordRoles = null;
+}
+
+
 
 //Ends the game, cleans up roles, cleares used channels
 async function endGame(guild) {
@@ -942,6 +991,7 @@ function outputGroups(channel){
 		break;
 	}
 }
+
 
 //Selects a random role from the passed data
 function randomRole(array) {
