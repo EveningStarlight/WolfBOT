@@ -22,6 +22,7 @@ const types_list = [
 
 var myVar;
 let roleData;
+let playGroups;
 let allRoles = new Array();
 let discordRoles = null;
 let nominate = new Object();
@@ -35,10 +36,9 @@ client.on('ready', async () => {
         const index = Math.floor(Math.random() * (activities_list.length - 1) + 1); // generates a random number between 1 and the length of the activities array list (in this case 5).
         client.user.setActivity(activities_list[index],types_list[index]); // sets bot's activities to one of the phrases in the arraylist.
     }, 10000);
-    
-	//client.user.setActivity("villagers", {type: 'WATCHING'});
-	roleData = JSON.parse(fs.readFileSync('roles.json'));
   
+	roleData = JSON.parse(fs.readFileSync('roles.json'));
+	playGroups = JSON.parse(fs.readFileSync('playGroups.json'));
 	let roleSuper = Object.values(roleData);
 	let roleSub = new Array();
 	roleSuper.forEach(sup => {
@@ -441,7 +441,7 @@ client.on('message', async msg => {
 			case 'refresh':
                 rolesIG=[];
 				if (pleaseConfirm && isUserHost) {
-					selectRoles(guild,roleData);
+					selectRoles(guild, numPlayer);
 				}
                 isDrunk = false;
                 msg.delete(1000);
@@ -512,6 +512,9 @@ client.on('message', async msg => {
 			break;
 		 }
     }
+	else if (user.id == 230433217147043840) {
+		msg.delete(1000);
+	}
 });
 
 //Begins the process of starting a game by inviting players to join
@@ -542,7 +545,7 @@ function startGame(guild,data) {
     console.log("Players Alive: " + numAlive);
 	isGameStarted = true;
 	isDay = true;
-    selectRoles(guild,data);
+    selectRoles(guild, numPlayer);
     guild.fetchMembers().then(r => {
 		r.members.array().forEach(user => createUserChannels(user,guild))});
 		
@@ -555,7 +558,7 @@ function startGame(guild,data) {
 		{	VIEW_CHANNEL: true,
 			SEND_MESSAGES: false,
             ADD_REACTIONS: true});
-        outputGroups(channel);
+		printPlayGroup(channel, numPlayer);
     });
 	
     guild.createChannel('dead','text').then(channel => {
@@ -660,198 +663,26 @@ function fillDiscordRoles(guild) {
 	role = guild.roles.find(role => role.name === "@everyone");
 	discordRoles.Everyone = role;
 }
+//Selects the roles based on the number of players.
+async function printPlayGroup(channel, players){
+	let string = "For " + players + " players, the game includes: \n" ;
+	playGroups["normal"]["players_" + players].forEach(role => {
+		string += role.Main;
+		if (role.Sub != null) {	string += " " + role.Sub;	}
+		string += "\n";
+	});
+	channel.send(string);
+}
 
 //Selects the roles based on the number of players.
-function selectRoles(guild){
-    if (!rolesConfirmed){
-		switch(numPlayer){
-            case 6:
-				randomRole(roleData.Village.Seer);
-				randomRole(roleData.Village.Negative);
-				randomRole(roleData.Village.Support);
-				randomRole(roleData.Village.Protective);
-				randomRole(roleData.Werewolf.Werewolf);
-				randomRole(roleData.Werewolf.Werewolf);
-            break;   
-
-            case 7:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Werewolf);
-            break;
-
-            case 8:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Neutral.Evil);
-            break;
-
-            case 9:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Evil);
-            break;
-
-            case 10:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Evil);
-            break;
-
-            case 11:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral);
-            break;
-
-            case 12:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Killing);
-            break;
-
-            case 13:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Killing);
-            break;
-
-            case 14:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Village);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral);
-                randomRole(roleData.Neutral.Killing);
-            break;
-
-            case 15:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Evil);
-                randomRole(roleData.Neutral.Killing);
-
-            break;
-
-            case 16:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Evil);
-                randomRole(roleData.Neutral.Killing);
-
-            break;
-
-            case 17:
-                randomRole(roleData.Village.Seer);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Negative);
-                randomRole(roleData.Village.Investigative);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Support);
-                randomRole(roleData.Village.Protective);
-                randomRole(roleData.Village.Killing);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Village);
-                randomRole(roleData.Werewolf.Werewolf);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Support);
-                randomRole(roleData.Werewolf.Killing);
-                randomRole(roleData.Neutral.Evil);
-                randomRole(roleData.Neutral.Killing);
-
-            break;
-
-            case 18:
-
-            break;
-
-            case 19:
-
-            break;
-
-		}
-		pleaseConfirm = true;
+function selectRoles(guild, players) {
+	playGroups["normal"]["players_" + players].forEach(role => {
+		let roleType = roleData[role.Main];
+		if (role.Sub != null) {	roleType =  roleType[role.Sub];	}
+		randomRole(roleType);
+	});
+	
+	pleaseConfirm = true;
 		var str = "The role list is as follows:\n";
 		for (var i=0; i<rolesIG.length; i++) {
             if(rolesIG[i].roleName == "Drunk"){
@@ -865,80 +696,6 @@ function selectRoles(guild){
 		let chanHost = guild.channels.find(channel => channel.name === "host");
 		chanHost.send(str);
 		shuffle(rolesIG);
-	}
-}
-
-function outputGroups(channel){
-	channel.send("This game includes:");
-	switch(numPlayer){
-		case 6:
-			channel.send("Seer\nVillage Negative\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
-
-		break;   
-
-		case 7:
-			channel.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf");
-
-		break;
-
-		case 8:
-			channel.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nWerewolf\nWerewolf\nNeutral Evil");
-
-		break;
-
-		case 9:
-			channel.send("Seer\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Killing\nNeutral Evil");
-
-		break;
-
-		case 10:
-			channel.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Evil");
-				
-		break;
-
-		case 11:
-			channel.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Random");
-
-		break;
-
-		case 12:
-			channel.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
-
-		break;
-
-		case 13:
-			channel.send("Seer\nVillage Negative\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nWerewolf\nWerewolf Support\nWerewolf Killing\nNeutral Killing");
-
-		break;
-
-		case 14:
-			channel.send("Seer\nVillage Negative\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Protective\nVillage Killing\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Killing\nTrue Neutral\nNeutral Killing");
-
-		break;
-
-		case 15:
-			channel.send("Seer\nVillage Investigative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
-
-		break;
-
-		case 16:
-			channel.send("Seer\nVillage Investigative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
-
-		break;
-
-		case 17:
-			channel.send("Seer\nVillage Investigative\nVillage Negative\nVillage Negative\nVillage Support\nVillage Support\nVillage Protective\nVillage Killing\nVillage Random\nVillage Random\nVillage Random\nWerewolf\nWerewolf Support\nWerewolf Support\nWerewolf Killing\nNeutral Evil\nNeutral Killing");
-
-		break;
-
-		case 18:
-
-		break;
-
-		case 19:
-
-		break;
-	}
 }
 
 //Selects a random role from the passed data
