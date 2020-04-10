@@ -699,7 +699,7 @@
          },
          {
             "roleName":"Howler",
-            "description":"Wakes with the Werewolves. If you are lynched you may select a non Werewolf team player and name their role. If you are correct that player is killed instead.",
+            "description":"Wakes with the Werewolves. The first time you are lynched you may select a non Werewolf team player and name their role. If you are correct that player is killed instead.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
 			"winCon":"Kill all non-Werewolves"
