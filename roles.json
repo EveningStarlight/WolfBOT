@@ -295,7 +295,11 @@
             "description":"You can commune with the dead through a special channel.",
             "category":"Village Support",
 			"seenAs":"Neutral",
-			"winCon":"Kill all Werewolves"
+			"winCon":"Kill all Werewolves",
+			"channels": 
+			[
+				"medium"
+			]
          }
       ],
       "Protective":[
@@ -391,7 +395,11 @@
             "description":"You can listen in on the Werewolves chat.",
             "category":"Village Investigative",
 			"seenAs":"Bad",
-			"winCon":"Kill all Werewolves"
+			"winCon":"Kill all Werewolves",
+			"channels": 
+			[
+				"undercover"
+			]
          },
          {
             "roleName":"Tracker",
@@ -616,7 +624,11 @@
             "description":"Wakes up each night and selects someone to kill with the other Werewolves.",
             "category":"Werewolf",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          }
       ],
       "Killing":[
@@ -625,21 +637,33 @@
             "description":"You are a Werewolf but appear as good to the seer and PI.",
             "category":"Werewolf Killing",
 			"seenAs":"Good",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Dire Wolf",
             "description":"On the first night on your own choose a companion. You die if they die, but if you die they don't.",
             "category":"Werewolf Killing",
 			"seenAs":"Neutral",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Wolf Cub",
             "description":"If you die, the Werewolves kill two people the night after.",
             "category":"Werewolf Killing",
 			"seenAs":"Neutral",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Dream Wolf",
@@ -653,28 +677,44 @@
             "description":"Wake up with the Werewolves. If lynched, select someone their role will be revealed to the Werewolves.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Crippled Wolf",
             "description":"Wake with the Werewolves, you can only select your neighbours to kill.",
             "category":"Werewolf Killing",
 			"seenAs":"Neutral",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Ravenous Wolf",
             "description":"Wake with the Werewolves, if you are the last killing role on the wolf team you may kill two players each night.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Teasing Wolf",
             "description":"Wake with the Werewolves. If you are lynched choose a player that can no longer vote.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Gargoyle",
@@ -688,63 +728,99 @@
             "description":"Wake with the Werewolves. If you are seen by the Seer, you are awoken to see who the seer is.",
             "category":"Werewolf Killing",
 			"seenAs":"Neutral",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Hellhound",
             "description":"Wake with the Werewolves. If you are lynched both your neighbours will be attacked tonight instead of the regular wolf attacks.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Howler",
             "description":"Wakes with the Werewolves. The first time you are lynched you may select a non Werewolf team player and name their role. If you are correct that player is killed instead.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Hungerer",
             "description":"Wakes with the wereolves. If your target is not dead you kill an extra player the next night.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Minotaur",
             "description":"Wake with the Werewolves. You can only be killed by lynching.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Oni",
             "description":"Wake with the Werewolves. If you are the only player left on the wolf team, your attacks ignore protection.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"RoboWolf5000",
             "description":"Wakes with the Werewolves. If lynched, pick a player. That player will be killed as well.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Selkie",
             "description":"Wakes with the Werewolves. If a player survives your attack, they are permanetly seen as bad.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Monk Wolf",
             "description":"Wakes with the Werewolves. If no one is lynched during the day, you are seen as good during the night.",
             "category":"Werewolf Killing",
 			"seenAs":"Bad/Good",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          }
       ],
       "Support":[
@@ -753,14 +829,22 @@
             "description":"Wakes up every night with the Werewolves, and again after the Werewolves on their own to choose someone to keep silent the day after.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Fruit Brute",
             "description":"Wake with the Werewolves, if you are the last Werewolf Support alive you will not be converted into a Werewolf.",
             "category":"Werewolf Support",
 			"seenAs":"Neutral",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Sorcerer",
@@ -774,28 +858,44 @@
             "description":"Wakes up each night with the Werewolves. Wake up again after the Werewolves and select a player to appear as good to the seer.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Shedding Wolf",
             "description":"Wakes up each night with the Werewolves. Wake up again after the Werewolves and select a player to appear as bad to the seer.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Concubine",
             "description":"Wake with the Werewolves. Wake again to choose a player, that player's night action does not happen.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Wolf Biter",
             "description":"Wake with the werewolves. The first time you would be converted into a Werewolf instead at random one of your neighbors is.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Gremlin",
@@ -816,14 +916,22 @@
             "description":"Wake with the Werewolves. Your non-wolf neighbours are seen as bad to the seer.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Succubus",
             "description":"Wake with the Werewolves. Your neighbours can not be protected.",
             "category":"Werewolf Support",
 			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
+			"winCon":"Kill all non-Werewolves",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Nightmare",
@@ -948,7 +1056,11 @@
             "description":"Wakes up each night with the wolves and selects someone to kill with the other Werewolves.",
             "category":"Neutral Evil",
 			"seenAs":"Neutral",
-			"winCon":"Be the last person alive"
+			"winCon":"Be the last person alive",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Tanner",
@@ -1041,7 +1153,11 @@
             "description":"Wakes up every night with the Werewolves. Every other night wake up alone as well as with the Werewolves and kill anyone.",
             "category":"Neutral Killing",
 			"seenAs":"Neutral",
-			"winCon":"Be the last person alive"
+			"winCon":"Be the last person alive",
+			"channels": 
+			[
+				"werewolf"
+			]
          },
          {
             "roleName":"Serial Killer",
