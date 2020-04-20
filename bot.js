@@ -521,19 +521,20 @@ async function invitePlayers(guild, host) {
 //Starts the game
 //Creates all game channels
 function startGame(guild) {
-	console.log("Starting Game");
+	console.log("\n" + "Starting Game");
 	
     console.log("Players Alive: " + game.players.alive());
 	game.isStarted = true;
 	game.isDay = true;
     selectRoles(guild, game.players.number());
+	
     game.players.forEach(user => createUserChannels(user, guild));
 	
 	createChannel(guild, discordChannels.day).then( () => {
 		printPlayGroup(game.channels.day, game.players.number());
 	});
+	
 	createChannel(guild, discordChannels.dead);
-	//createChannel(guild, discordChannels.werewolf);
 	createChannel(guild, discordChannels.voice).then(channel => {
         //Moves all people from day-vice to General
 		let generalVoice = guild.channels.find(channel => channel.name === "General");
@@ -593,7 +594,7 @@ function newGame() {
 
 //ends the game
 async function endGame(guild) {
-	console.log("Clearing game");
+	console.log("\n" + "Clearing game");
     isDrunk = false;
 	vote = null;
 	
@@ -613,7 +614,9 @@ async function endGame(guild) {
 	Object.values(discordChannels).forEach( async (obj) => {
 		let channel = await guild.channels.find(channel => channel.name === obj.name);
 		if (channel != null) { 
-			channel.delete().catch(console.error); 
+			channel.delete().catch(function(error) {
+			  console.error(error);
+			});
 		}
 	});
 
@@ -632,23 +635,30 @@ async function endGame(guild) {
 
 //Creates a privte channel for each player and the host
 function createUserChannels(user, guild){
-	let channelObj = discordChannels.template;
+	let channelObj = new Object();
 	channelObj.name = user.displayName;
+	channelObj.type = discordChannels.template.type;
 	channelObj.message = "This is your personal channel for communicating with the host, and for using commands";
+	channelObj.permissions = discordChannels.template.permissions;
+	channelObj.rolePermission = discordChannels.template.rolePermission;
 	
 	createChannel(guild, channelObj).then( () => {
 		let channel = game.channels[user.displayName];
 		channel.overwritePermissions(user, discordChannels.template.rolePermission);
 		game.channels[user.displayName] = channel;
 		user.channel = channel;
-	});
+	}).catch(function(err) {
+			console.log("Error on user: " + user.displayName)
+		});
 }
 
 //Deletes individual channels, and removes game roles
 function removeUserChannels(user,guild){
-    if (user.roles.has(discordRoles.Town.id) || user.roles.has(discordRoles.Dead.id)){
-        guild.channels.find(channel => channel.name === user.displayName.toLowerCase()).delete().catch(console.error);
-    }
+	let channel = guild.channels.find(channel => channel.name === user.displayName.toLowerCase());
+	if (channel != null) {
+		channel.delete();
+	}
+	
     if (user.roles.has(discordRoles.Town.id)){
         user.removeRole(discordRoles.Town.id).catch(console.error);
     }
