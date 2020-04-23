@@ -42,11 +42,11 @@
 			},
 			{
 				"Main":"Village",
-				"Sub":"Support"
-			},
-			{
-				"Main":"Village",
 				"Sub":"Protective"
+			},
+            {
+				"Main":"Village",
+				"Sub":"Random"
 			},
 			{
 				"Main":"Werewolf",
@@ -73,11 +73,11 @@
 			},
 			{
 				"Main":"Village",
-				"Sub":"Support"
-			},
-			{
-				"Main":"Village",
 				"Sub":"Protective"
+			},
+            {
+				"Main":"Village",
+				"Sub":"Random"
 			},
 			{
 				"Main":"Werewolf",
@@ -721,6 +721,139 @@
 				"Main":"Neutral"
 			}
 		]
-	}
+	},
+    "neutral-alt": {
+		"players_6": [
+			{
+				"Main":"Village",
+				"Sub":"Seer"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Negative"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Protective"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			}
+		],
+		"players_7":
+		[
+			{
+				"Main":"Village",
+				"Sub":"Seer"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Negative"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Protective"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			}
+		],
+		"players_8":
+		[
+			{
+				"Main":"Village",
+				"Sub":"Seer"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Negative"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Protective"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			},
+			{
+				"Main":"Neutral",
+				"Sub":"Evil"
+			}
+		],
+		"players_9":
+		[
+			{
+				"Main":"Village",
+				"Sub":"Seer"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Negative"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Support"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Protective"
+			},
+			{
+				"Main":"Village",
+				"Sub":"Protective"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
+			},
+			{
+				"Main":"Werewolf",
+				"Sub":"Killing"
+			},
+			{
+				"Main":"Neutral",
+				"Sub":"Evil"
+			}
+		]
+    }
 }
  
