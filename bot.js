@@ -11,6 +11,7 @@ const activities_list = [
     "the dead",
     "your back",
     ];
+
 const types_list = [
     {type: 'WATCHING'},
     {type: 'WATCHING'}, 
@@ -18,6 +19,32 @@ const types_list = [
     {type: 'PLAYING'},
     {type: 'LISTENING'}, 
     {type: 'WATCHING'}
+    ];
+
+const emoji_list = [
+"<:Wolf_Seer:701405443637116938>",
+"<:anxious_wolf:701403284597899315>",
+"<:wolfgang:701407344265003009>",
+"<:wolf:701406638216839178>",
+"<:Junior_Werewolf:701405445654315068>",
+"<:MelonWolf:701403464332214282>",
+"<:Nightmare_Werewolf:701405445386010624>",
+"<:ReallyWolf:701403464823210044>",
+"<:Seer:701405443561357332>",
+"<:Spirit_Seer:701405443599106108>",
+"<:Werewolf_Berserk:701405443792306256>",
+"<:Legosi_Hmpf:701403461962563595>",
+"<:villager_idc:701404684052725771>",
+"<:Villager:701404681913499688>",
+"<:totallyawolf:701406641152720956>",
+"<:Villager:701404684522618880>",
+"<:detective:701405804489605120>",
+"<:furrywolfs:701406641358372885>",
+"<:furrywolfh:701406641270030387>",
+"<:drunkwolf:701406641282744331>",
+"<:Cursed:701405445880938516>",
+"<:crystal_ball:701404918115860561>",
+"<:wolf_face:701162130652528641>"
     ];
 
 var myVar;
@@ -31,6 +58,7 @@ nominate.nominations = new Object();
 nominate.accused = new Object();
 let vote = null;
 let game;
+let embedMSG;
 
 client.on('ready', async () => {
     //client.user.setAvatar('./WerewolfOnlineGreen.png')
@@ -138,16 +166,65 @@ client.on('message', async msg => {
 			case 'p':
 			case 'j':
 				if (game.isActive && !game.isStarted && !user.roles.has(discordRoles.Town.id)){
+                    const index = Math.floor(Math.random() * (emoji_list.length - 1) + 1); // generates a random number between 1 and the length of the activities array list (in this case 5).
 					game.addPlayer(user);
 					user.addRole(discordRoles.Town).catch(console.error);
-
-                    if (game.players.number() < 6){
-                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. ["+ game.players.number() + "/6] players till the game can begin.").catch(console.error);
+                    
+                    if(user.id == '230433217147043840'){//user is Buster
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:buster:701416891305951323>").catch(console.error);
+                        
                     }
-                    else {
-                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. [" + game.players.number() + "] players!").catch(console.error);
+                    else if(user.id == '298116458851074070'){//user is Adam
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:adam:701418909106045029>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '688911285655699458'){//user is Alex
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:alex:701418908963438643>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '164246870179315713'){//user is Andrew
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:andrew:701416894502010940>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '332317117816897536'){//user is Andy
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:andy:701416895454380093>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '186646350220361728'){//user is Ariq
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:ariq:701417165072367668>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '382990666873044992'){//user is Dayna
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:mild_dayna:701416986801864714>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '239257392649338890'){//user is Gaelan
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:gaelan:701420026862895204>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '324734610997116928'){//user is Julianna
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:juliemoji:701416889385222225>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '170632428182831104'){//user is Morgan
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:morgan:701416892153200650>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '135053966353367040'){//user is Rafe
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:rafe_wtf:701416986143490079>").catch(console.error);
+                        
+                    }
+                    else if(user.id == '130435999259033600'){//user is Chandler
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. <:chandy_boy:701416989796597830>").catch(console.error);
+                        
+                    }
+                    else{
+                        guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. "+ emoji_list[index]).catch(console.error);
 
                     }
+                    playersInLobby.push(user+"\n")
+                    await updateJoinEmbed();
+                    joinMessage.edit(embedMSG);
                     console.log(user.displayName + " has joined the lobby.");
 				}
 				else if (game.isActive && game.isStarted) {
@@ -296,7 +373,6 @@ client.on('message', async msg => {
                     else if(userMen.roles.has(discordRoles.Town.id) && message != '!whisper '+args[0]){
                         userMentioned.send(user+" whispered: "+message.replace('!whisper '+args[0]+' ',''))
                         guild.channels.find(channel => channel.name === "day").send(user+" whispered to "+userMen+"!")
-                        console.log(user);
                     }
                     else if(message != '!whisper '+args[0]){
                         msg.reply('please type a message!');
@@ -512,10 +588,11 @@ async function invitePlayers(guild, host) {
 	console.log("\n\nInviting Players");
 	game.isActive = true;
 	fillDiscordRoles(guild);
-	
 	host.addRole(discordRoles.Host).catch(console.error);			
-	createChannel(guild, discordChannels.join);
-	createChannel(guild, discordChannels.host);
+	await createChannel(guild, discordChannels.join);
+	await createChannel(guild, discordChannels.host);
+    await updateJoinEmbed();
+    joinMessage = await guild.channels.find(channel => channel.name === "join_game").send(embedMSG);
 }
 
 //Starts the game
@@ -845,6 +922,23 @@ async function updateVoteEmbed() {
 		.addField("Remaining", "Players: " + vote.players.remaining.toString());
 }
 
+async function updateJoinEmbed() {
+    if(game.players.number() <= 6){
+        embedMSG = await new Discord.RichEmbed()
+            .setTitle('Lobby')
+            .setColor(0x8eb890)
+            .addField("Players In Lobby","Players: \n"+playersInLobby)
+            .addField("Number of Players", game.players.number()+"/6 Players");
+    }
+    else{
+        embedMSG = await new Discord.RichEmbed()
+            .setTitle('Lobby')
+            .setColor(0x8eb890)
+            .addField("Players In Lobby","Players: "+playersInLobby)
+            .addField("Number of Players", game.players.number()+" Players");
+    }  
+}
+
 async function beginLynch(guild, lynchedVillager) {
 	vote = new Object();
 	vote.player = lynchedVillager;
@@ -889,7 +983,7 @@ function unMuteTown(guild){
             channelMember[1].setMute(false)
         }
     }
-    setTimeout(muteAllVote,30000,guild);    
+    setTimeout(muteAllVote,50000,guild);    
 }
 
 function muteAllVote(guild){
@@ -918,7 +1012,7 @@ async function moveVoiceChannels(oldChannel, newChannel) {
 }
 
 function wait30Seconds(guild) {
-  myVar = setTimeout(function(){ unMuteTown(guild); }, 30000);
+  myVar = setTimeout(function(){ unMuteTown(guild); }, 50000);
 }
 
 
