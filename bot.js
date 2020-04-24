@@ -61,6 +61,7 @@ let game;
 let playersInLobby = new Array();
 let embedMSG;
 let numPlayer;
+let wolfAction;
 
 client.on('ready', async () => {
     //client.user.setAvatar('./WerewolfOnlineGreen.png')
@@ -101,6 +102,7 @@ var numRoles = 0;
 var skipped = false;
 var drunkRole;
 var busterBuster = true;
+
 
 
 
@@ -272,9 +274,10 @@ client.on('message', async msg => {
 					nominate.embed = new Discord.RichEmbed();
 					nominate.message = null;
 					updateNominateEmbed();
-					
+                    
+					game.players.forEach(player => {player.action = "";});
 					game.actions = null;
-					game.updateActions();
+					game.updateActions(user);
 					
                     for (let channelMember of guild.channels.find(channel => channel.name === "voice").members) {
                         if(channelMember[1].roles.has(discordRoles.Town.id)){
@@ -354,9 +357,17 @@ client.on('message', async msg => {
 			case 'a':
 			case 'action':
 				if (user.roles.has(discordRoles.Town.id) && game.isStarted && !game.isDay) {
-					game.players.find(player => player.id === user.id).action = args.join(' ');
-					msg.reply("Your action has been set to: " + game.players.find(player => player.id === user.id).action);
-					game.updateActions();
+                    if(channel.name == game.channels.werewolf.name){
+                        wolfAction = args.join(' ');
+                        msg.reply("The Werewolves action has been set to: " + wolfAction);
+                        game.updateActions(user); 
+                    }
+                    else{
+                        game.players.find(player => player.id === user.id).action = args.join(' ');
+                        msg.reply("Your action has been set to: " + game.players.find(player => player.id === user.id).action);
+                        game.updateActions(user); 
+                    }
+
 				}
 			break;
             case 'skip':
@@ -673,7 +684,7 @@ function newGame() {
 		game.players.push(player);
 	}
 	
-	game.updateActions = async function() {
+	game.updateActions = async function(user) {
 		let embed = new Discord.RichEmbed()
 		.setTitle("Player Actions")
 		.setColor(0x8eb890);
@@ -681,7 +692,8 @@ function newGame() {
 		game.players.forEach(player => {
 			embed.addField(player.displayName + " - " + player.role.roleName, "Action: " + player.action);
 		});
-		
+        emded.addField("Werewolves - " + user.displayName, "Action: " + wolfAction);
+
 		if (game.actions == null) {
 			console.log("sending message");
 			game.actions = await game.channels.host.send(embed);
