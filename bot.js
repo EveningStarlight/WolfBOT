@@ -521,15 +521,17 @@ client.on('message', async msg => {
 			case 'confirm':
 				if (pleaseConfirm && isUserHost) {
                     numRoles = 0;
-                    game.players.forEach(async function (user) {
-                                            await assignRoles(user, guild)
-                                        });				
+					
+					for (const player of game.players) {
+						console.log("starting player " + numRoles);
+						await assignRoles(player, guild);
+					}
                 }
 			break;
             // !refresh~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'refresh':
 				if (args.length != 0 && playGroups[args[0]] != null) {
-					game.playGroup = playGroups[args[0]]["players_" + players];
+					game.playGroup = playGroups[args[0]]["players_" + game.players.number()];
 					console.log(args[0] + " play group selected");
 				} 
                 rolesIG=[];
@@ -882,39 +884,37 @@ function shuffle(array) {
 }
 
 //This gives each user their role from the roleIG array
-function assignRoles(user, guild){
+async function assignRoles(user, guild){
+	console.log(Object.keys(game.channels));
 	user.role = rolesIG[numRoles];
 	user.channel.send("Your role is:");
 	printRole(rolesIG[numRoles], user.channel);
 	
 	if (rolesIG[numRoles].channels != null) {
-		rolesIG[numRoles].channels.forEach(async function(channelName) {
+		for (channelName of rolesIG[numRoles].channels) {
 			if (game.channels[channelName] == null) {
-				await createChannel(guild, discordChannels[channelName]).then( channel => {
-					console.log(channel);
-					game.channels[channelName] = channel;
+				await createChannel(guild, discordChannels[channelName]).then( () => {
 					game.channels[channelName].overwritePermissions(user, discordChannels[channelName].rolePermission);
 				});
 			}
 			else {
 				game.channels[channelName].overwritePermissions(user, discordChannels[channelName].rolePermission);
 			}
-		});
+		}
 	}
 	
 	if (rolesIG[numRoles].altRole != null) {
 		let altRole = roleCheck(rolesIG[numRoles].altRole);
 		if (altRole.channels != null) {
-			altRole.channels.forEach(async function(channelName) {
+			for (channelName of altRole.channels) {
 				if (game.channels[channelName] == null) {
-					await createChannel(guild, discordChannels[channelName]).then( channel => {
-						game.channels[channelName] = channel;
-					});
+					await createChannel(guild, discordChannels[channelName]);
 				}
-			});
+			}
 		}
 	}
 	
+	console.log("finishing player " + numRoles);
 	numRoles ++;
 }
 
@@ -1099,9 +1099,9 @@ function getUserFromMention(mention) {
 }
 
 function createChannel(guild, channelObj) {
-	console.log("making " + channelObj.name + " channel");
-	guild.createChannel(channelObj.name, channelObj.type).then(channel => {
+	return guild.createChannel(channelObj.name, channelObj.type).then(channel => {
 		game.channels[channelObj.name] = channel;
+		console.log("made " + channelObj.name + " channel");
 		if (channelObj.message!=null) {
 			channel.send(channelObj.message);
 		}
@@ -1111,6 +1111,4 @@ function createChannel(guild, channelObj) {
 			channel.overwritePermissions(discordRoles[perm.role], perm.permission);
 		});
 	}).catch(console.error);
-	
-	return guild.channels.find(channel => channel.name === channelObj.name);
 }
