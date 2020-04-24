@@ -951,7 +951,7 @@ async function updateJoinEmbed() {
         embedMSG = await new Discord.RichEmbed()
             .setTitle('Lobby')
             .setColor(0x8eb890)
-            .addField("Players In Lobby","Players: \n" + game.players.join("/n"))
+            .addField("Players In Lobby","Players: \n" + game.players.join("\n"))
             .addField("Number of Players", game.players.number()+"/6 Players");
     }
     else{
