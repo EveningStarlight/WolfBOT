@@ -123,7 +123,7 @@
          },
         {
             "roleName":"Bone Collector",
-            "description":"Once per game, at night, choose a dead player you gain their active and passive abilities and all imunities they would have had until the next night.",
+            "description":"Once per game, at night, choose a dead player you gain their active and passive abilities and all immunities they would have had until the next night.",
             "category":"Village Support",
 			"seenAs":"Unknown",
 			"winCon":"Kill all Werewolves"

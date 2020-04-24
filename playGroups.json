@@ -2,20 +2,20 @@
 	"normal": {
 		"players_6": [
 			{
-				"Main":"Village",
-				"Sub":"Seer"
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
 			},
 			{
-				"Main":"Village",
-				"Sub":"Negative"
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
 			},
 			{
-				"Main":"Village",
-				"Sub":"Support"
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
 			},
 			{
-				"Main":"Village",
-				"Sub":"Protective"
+				"Main":"Werewolf",
+				"Sub":"Werewolf"
 			},
 			{
 				"Main":"Werewolf",
