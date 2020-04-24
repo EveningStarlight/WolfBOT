@@ -148,6 +148,14 @@ client.on('message', async msg => {
 					invitePlayers(guild, msg.member);
 				}
 				else if (isUserHost && game.players.number() >= 6) {
+					if (args.length != 0 && playGroups[args[0]] != null) {
+						game.playGroup = playGroups[args[0]]["players_" + game.players.number()];
+						console.log(args[0] + " play group selected");
+					} 
+					else {
+						game.playGroup = playGroups["normal"]["players_" + game.players.number()];
+						console.log("normal play group selected");
+					}
 					startGame(guild);
 				} 
 				else if(game.players.number() >= 6){
@@ -520,6 +528,10 @@ client.on('message', async msg => {
 			break;
             // !refresh~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'refresh':
+				if (args.length != 0 && playGroups[args[0]] != null) {
+					game.playGroup = playGroups[args[0]]["players_" + players];
+					console.log(args[0] + " play group selected");
+				} 
                 rolesIG=[];
 				if (pleaseConfirm && isUserHost) {
 					selectRoles(guild, game.players.number());
@@ -544,15 +556,21 @@ client.on('message', async msg => {
 				}
 			break;
 			case 'playgroup':
-				let playgroup;
-				if (args.length != 0 ) {
-					playgroup = parseInt(args[0]);
+				let playGroup;
+				if (args.length > 1 ) {
+					playGroup = playGroups[args[1]]["players_" + parseInt(args[0])];
+				}
+				else if (args.length > 0) {
+					playGroup = playGroups["normal"]["players_" + parseInt(args[0])];
+				}
+				else if (game.playGroup != null) {
+					playGroup = game.playGroup;
 				}
 				else {
-					playgroup = game.players.number();
+					playGroup = playGroups["normal"]["players_6"];
 				}
-				if (playgroup<6) {playgroup = 6;}
-				printPlayGroup(channel, playgroup);
+				
+				printPlayGroup(channel, playGroup);
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
@@ -632,7 +650,7 @@ function startGame(guild) {
     game.players.forEach(user => createUserChannels(user, guild));
 	
 	createChannel(guild, discordChannels.day).then( () => {
-		printPlayGroup(game.channels.day, game.players.number());
+		printPlayGroup(game.channels.day, game.playGroup);
 	});
 	
 	createChannel(guild, discordChannels.dead);
@@ -784,12 +802,12 @@ function fillDiscordRoles(guild) {
 	discordRoles.Everyone = role;
 }
 
-//Selects the roles based on the number of players.
-async function printPlayGroup(channel, players){
-	let string = "For " + players + " players, the game includes: \n" ;
-	playGroups["normal"]["players_" + players].forEach(role => {
+//Selects the passed Play Group.
+async function printPlayGroup(channel, playGroup){
+	let string = "For " + playGroup.length + " players, the game includes: \n" ;
+	playGroup.forEach(role => {
 		string += role.Main;
-		if (role.Sub != null) {	string += " " + role.Sub;	}
+		if (role.Sub != null && role.Sub != "Werewolf" ) {	string += " " + role.Sub;	}
 		string += "\n";
 	});
 	channel.send(string);
@@ -797,7 +815,7 @@ async function printPlayGroup(channel, players){
 
 //Selects the roles based on the number of players.
 function selectRoles(guild, players) {
-	playGroups["normal"]["players_" + players].forEach(role => {
+	game.playGroup.forEach(role => {
 		let roleType = roleData[role.Main];
 		if (role.Sub != null) {	roleType =  roleType[role.Sub];	}
 		randomRole(roleType);
@@ -872,7 +890,9 @@ function assignRoles(user, guild){
 	if (rolesIG[numRoles].channels != null) {
 		rolesIG[numRoles].channels.forEach(async function(channelName) {
 			if (game.channels[channelName] == null) {
-				await createChannel(guild, discordChannels[channelName]).then( () => {
+				await createChannel(guild, discordChannels[channelName]).then( channel => {
+					console.log(channel);
+					game.channels[channelName] = channel;
 					game.channels[channelName].overwritePermissions(user, discordChannels[channelName].rolePermission);
 				});
 			}
@@ -887,7 +907,9 @@ function assignRoles(user, guild){
 		if (altRole.channels != null) {
 			altRole.channels.forEach(async function(channelName) {
 				if (game.channels[channelName] == null) {
-					await createChannel(guild, discordChannels[channelName]);
+					await createChannel(guild, discordChannels[channelName]).then( channel => {
+						game.channels[channelName] = channel;
+					});
 				}
 			});
 		}
@@ -951,7 +973,7 @@ async function updateJoinEmbed() {
         embedMSG = await new Discord.RichEmbed()
             .setTitle('Lobby')
             .setColor(0x8eb890)
-            .addField("Players In Lobby","Players: \n" + game.players.join("/n"))
+            .addField("Players In Lobby","Players: \n" + game.players.join("\n"))
             .addField("Number of Players", game.players.number()+"/6 Players");
     }
     else{
@@ -1078,7 +1100,7 @@ function getUserFromMention(mention) {
 
 function createChannel(guild, channelObj) {
 	console.log("making " + channelObj.name + " channel");
-	return guild.createChannel(channelObj.name, channelObj.type).then(channel => {
+	guild.createChannel(channelObj.name, channelObj.type).then(channel => {
 		game.channels[channelObj.name] = channel;
 		if (channelObj.message!=null) {
 			channel.send(channelObj.message);
@@ -1089,4 +1111,6 @@ function createChannel(guild, channelObj) {
 			channel.overwritePermissions(discordRoles[perm.role], perm.permission);
 		});
 	}).catch(console.error);
+	
+	return guild.channels.find(channel => channel.name === channelObj.name);
 }
