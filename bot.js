@@ -885,7 +885,6 @@ function shuffle(array) {
 
 //This gives each user their role from the roleIG array
 async function assignRoles(user, guild){
-	console.log(Object.keys(game.channels));
 	user.role = rolesIG[numRoles];
 	user.channel.send("Your role is:");
 	printRole(rolesIG[numRoles], user.channel);
@@ -913,8 +912,6 @@ async function assignRoles(user, guild){
 			}
 		}
 	}
-	
-	console.log("finishing player " + numRoles);
 	numRoles ++;
 }
 
