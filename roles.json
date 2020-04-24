@@ -35,7 +35,7 @@
          },
         {
             "roleName":"Mutant",
-            "description":"If you ever claim to be Mutant, Village Negative or any other Village Negative role, you die immediately.",
+            "description":"If you ever claim to be Mutant, Village Negative or any other Village Negative role, you are lynched.",
             "category":"Village Negative",
 			"seenAs":"Unknown",
 			"winCon":"Kill all Werewolves"
@@ -63,7 +63,7 @@
          },
          {
             "roleName":"Outsider",
-            "description":"If lynched you may select one of your neighbours to be lynched as well. You are seen as bad to the seer.",
+            "description":"If lynched randomly one of your neighbours will be lynched as well. You are seen as bad to the seer.",
             "category":"Village Negative",
 			"seenAs":"Bad",
 			"winCon":"Kill all Werewolves"
@@ -173,7 +173,7 @@
          },
          {
             "roleName":"Innocent Child",
-            "description":"At any time you may reveal your role.",
+            "description":"During the day you may reveal your role.",
             "category":"Village Support",
 			"seenAs":"Good",
 			"winCon":"Kill all Werewolves"
@@ -269,13 +269,6 @@
 			"seenAs":"Good",
 			"winCon":"Kill all Werewolves"
          },
-        {
-            "roleName":"Dungeon Master",
-            "description":"If you are alive the game will not end when a team wins. If you realize that the game should have ended and you point it out the Village team wins.",
-            "category":"Village Support",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
          {
             "roleName":"Patron",
             "description":"If one of your neighbours receive any kind of protection at night you recieve a copy of that protection.",
@@ -298,13 +291,6 @@
 			"winCon":"Kill all Werewolves"
          },
          {
-            "roleName":"Martyr",
-            "description":"Take the place of someone who has been lynched before they reveal their role.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
             "roleName":"Mason",
             "description":"You wake up and learn who the other masons are the first night.",
             "category":"Village Support",
@@ -316,6 +302,13 @@
             "description":"At any point during the day you may reveal yourself. If you do your vote counts for double.",
             "category":"Village Support",
 			"seenAs":"Good",
+			"winCon":"Kill all Werewolves"
+         },
+        {
+            "roleName":"Martyr",
+            "description":"During the voting phase before the results are tallied choose to switch places with the player on the stand. If the village votes innocent nothing will happen if the village votes guilty you will die instead and the person who was going to be hung will receive protection that night.",
+            "category":"Village Support",
+			"seenAs":"Unknown",
 			"winCon":"Kill all Werewolves"
          },
          {
@@ -718,7 +711,7 @@
       "Killing":[
          {
             "roleName":"Wolfman",
-            "description":"You are a Werewolf but appear as good to the seer and PI.",
+            "description":"Wake with the Werewolves. You appear as good.",
             "category":"Werewolf Killing",
 			"seenAs":"Good",
 			"winCon":"Kill all non-Werewolves",
@@ -740,7 +733,7 @@
          },
          {
             "roleName":"Wolf Cub",
-            "description":"If you die, the Werewolves kill two people the night after.",
+            "description":"Wake with the Werewolves. If you die, the werewolves kill two people the night after.",
             "category":"Werewolf Killing",
 			"seenAs":"Unknown",
 			"winCon":"Kill all non-Werewolves",

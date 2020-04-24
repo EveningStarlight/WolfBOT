@@ -58,7 +58,9 @@ nominate.nominations = new Object();
 nominate.accused = new Object();
 let vote = null;
 let game;
+let playersInLobby = new Array();
 let embedMSG;
+let numPlayer;
 
 client.on('ready', async () => {
     //client.user.setAvatar('./WerewolfOnlineGreen.png')
@@ -502,8 +504,10 @@ client.on('message', async msg => {
 			case 'confirm':
 				if (pleaseConfirm && isUserHost) {
                     numRoles = 0;
-		            game.players.forEach(user => assignRoles(user, guild));
-				}
+                    game.players.forEach(async function (user) {
+                                            await assignRoles(user, guild)
+                                        });				
+                }
 			break;
             // !refresh~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'refresh':
