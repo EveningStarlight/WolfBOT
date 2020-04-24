@@ -224,7 +224,6 @@ client.on('message', async msg => {
                         guild.channels.find(channel => channel.name === "join_game").send(user.displayName + " has joined the lobby. "+ emoji_list[index]).catch(console.error);
 
                     }
-                    playersInLobby.push(user+"\n")
                     await updateJoinEmbed();
                     joinMessage.edit(embedMSG);
                     console.log(user.displayName + " has joined the lobby.");
@@ -306,6 +305,9 @@ client.on('message', async msg => {
             // !nominate~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'nominate':
 				let accused = await game.players.find(user => user.id === msg.mentions.users.first().id);
+				if (accused == null) {
+					accused = await getUserFromText(args[0], guild);
+				}
 				
 				if (game.isDay && vote == null && user.roles.has(discordRoles.Town.id) && accused.roles.has(discordRoles.Town.id) && accused.id != user.id) {
 					if (nominate.nominations[user.displayName.toLowerCase()] != null) {
@@ -325,6 +327,9 @@ client.on('message', async msg => {
 			case 'second':
 			case 'third':
 				let accusedS = await game.players.find(user => user.id === msg.mentions.users.first().id);
+				if (accusedS == null) {
+					accusedS = await getUserFromText(args[0], guild);
+				}
 				if (game.isDay && vote == null && nominate.accused[accusedS.displayName.toLowerCase()] != null && user.roles.has(discordRoles.Town.id) && accusedS.id != user.id) {
 					let alreadySecond = false;
 					nominate.accused[accusedS.displayName.toLowerCase()].nominations.forEach(nomination => {
@@ -435,9 +440,13 @@ client.on('message', async msg => {
 					vote.message.edit(vote.embed);
 				}
 				else if(isUserHost && vote != null){
-					game.channels.day.send("The Town has decided  that " + vote.player + " is guilty");
+					let role = vote.player.role;
+					if (args.length != 0 ) {
+						role = roleCheck(args[0]);
+					}
+					game.channels.day.send("The Town has decided  that " + vote.player + " is guilty.\nThey were the " + role.roleName);
 					game.channels.day.send("!kill " + vote.player);
-					printRole(vote.player.role, game.channels.day);
+					printRole(role, game.channels.day);
 					vote = null;
 					for (let channelMember of guild.channels.find(channel => channel.name === "voice").members) {
 						if(channelMember[1].roles.has(discordRoles.Town.id)){
@@ -533,6 +542,17 @@ client.on('message', async msg => {
 				if (isUserHost || !game.isStarted) {
 					endGame(guild);  
 				}
+			break;
+			case 'playgroup':
+				let playgroup;
+				if (args.length != 0 ) {
+					playgroup = parseInt(args[0]);
+				}
+				else {
+					playgroup = game.players.number();
+				}
+				if (playgroup<6) {playgroup = 6;}
+				printPlayGroup(channel, playgroup);
 			break;
 			// !help~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 			case 'help':
@@ -850,9 +870,9 @@ function assignRoles(user, guild){
 	printRole(rolesIG[numRoles], user.channel);
 	
 	if (rolesIG[numRoles].channels != null) {
-		rolesIG[numRoles].channels.forEach(channelName => {
+		rolesIG[numRoles].channels.forEach(async function(channelName) {
 			if (game.channels[channelName] == null) {
-				createChannel(guild, discordChannels[channelName]).then( () => {
+				await createChannel(guild, discordChannels[channelName]).then( () => {
 					game.channels[channelName].overwritePermissions(user, discordChannels[channelName].rolePermission);
 				});
 			}
@@ -865,9 +885,9 @@ function assignRoles(user, guild){
 	if (rolesIG[numRoles].altRole != null) {
 		let altRole = roleCheck(rolesIG[numRoles].altRole);
 		if (altRole.channels != null) {
-			altRole.channels.forEach(channelName => {
+			altRole.channels.forEach(async function(channelName) {
 				if (game.channels[channelName] == null) {
-					createChannel(guild, discordChannels[channelName]);
+					await createChannel(guild, discordChannels[channelName]);
 				}
 			});
 		}
@@ -931,14 +951,14 @@ async function updateJoinEmbed() {
         embedMSG = await new Discord.RichEmbed()
             .setTitle('Lobby')
             .setColor(0x8eb890)
-            .addField("Players In Lobby","Players: \n"+playersInLobby)
+            .addField("Players In Lobby","Players: \n" + game.players.join("/n"))
             .addField("Number of Players", game.players.number()+"/6 Players");
     }
     else{
         embedMSG = await new Discord.RichEmbed()
             .setTitle('Lobby')
             .setColor(0x8eb890)
-            .addField("Players In Lobby","Players: "+playersInLobby)
+            .addField("Players In Lobby","Players: " + game.players.join("/n"))
             .addField("Number of Players", game.players.number()+" Players");
     }  
 }
@@ -1058,7 +1078,7 @@ function getUserFromMention(mention) {
 
 function createChannel(guild, channelObj) {
 	console.log("making " + channelObj.name + " channel");
-	return guild.createChannel(channelObj.name,channelObj.type).then(channel => {
+	return guild.createChannel(channelObj.name, channelObj.type).then(channel => {
 		game.channels[channelObj.name] = channel;
 		if (channelObj.message!=null) {
 			channel.send(channelObj.message);
@@ -1066,9 +1086,7 @@ function createChannel(guild, channelObj) {
 		let permissions = discordChannels.template.permissions.concat(channelObj.permissions);
 		
 		permissions.forEach(perm => {
-			channel.overwritePermissions(discordRoles[perm.role],
-				perm.permission
-			);
+			channel.overwritePermissions(discordRoles[perm.role], perm.permission);
 		});
 	}).catch(console.error);
 }
