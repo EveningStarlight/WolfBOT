@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A bot for helping run games of WereWolf",
   "main": "bot.js",
-  "author": "Adam Prins & Jamie Hopkins",
+  "author": "Evening Starlight & Jamie Hopkins",
   "dependencies": {
     "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
     "discord.js": "^11.5.1",
