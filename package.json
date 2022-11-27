@@ -1,13 +1,16 @@
 {
-  "name": "WolfBOT",
+  "name": "1---how-to-make-a-discord-bot-for-beginners",
   "version": "1.0.0",
-  "description": "A bot for helping run games of WereWolf",
-  "main": "bot.js",
-  "author": "Adam Prins & Jamie Hopkins",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
-    "discord.js": "^11.5.1",
-    "node-fetch": "^2.6.0",
-    "winston": "^3.2.1"
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3"
   }
 }

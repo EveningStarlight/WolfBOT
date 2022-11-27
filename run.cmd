@@ -1,4 +1,4 @@
 ::cd Documents
 ::cd HaramBOT
-node --no-deprecation bot.js 
+node --no-deprecation index.js 
 pause
