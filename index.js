@@ -32,10 +32,18 @@ const types_list = [
 client.on('ready', () => {
   console.log('The bot is ready')
     
-    
+    client.user.setPresence({
+        game: {
+            name: activities_list[0],
+            type: types_list[0]
+        }});
     setInterval(() => {
         const index = Math.floor(Math.random() * (activities_list.length - 1) + 1);
-        client.user.setActivity(activities_list[index],types_list[index]); 
+        client.user.setPresence({
+        game: {
+            name: activities_list[index],
+            type: types_list[index]
+        }});
     }, 10000);
 })
 
