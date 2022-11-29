@@ -97,6 +97,9 @@ module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plagu
         }
         return null;
     },
+    getAllRoleNames: function() {
+        return allRoles.flat().map(({roleName})=> roleName)
+    },
     getRoleEmbed: async function(role) {
         const embed = await new Discord.EmbedBuilder()
             .setTitle(role.roleName)

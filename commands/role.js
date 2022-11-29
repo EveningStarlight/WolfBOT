@@ -8,7 +8,18 @@ module.exports = {
     .addStringOption(option =>
 		option.setName('name')
 			.setDescription('The role you are looking for')
-            .setRequired(true)),
+            .setRequired(true)
+            .setAutocomplete(true)),
+
+  async autocomplete(interaction) {
+	const focusedValue = interaction.options.getFocused();
+	const choices = rolesFile.getAllRoleNames()
+	const filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
+	await interaction.respond(
+		filtered.map(choice => ({ name: choice, value: choice })),
+	);
+  },
+
 
   async execute(interaction) {
     const roleName = interaction.options.getString('name') ?? "error";
