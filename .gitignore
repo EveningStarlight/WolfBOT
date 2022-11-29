@@ -1,3 +1,6 @@
 
 node_modules/*
-loginToken.json
+.env
+
+# Stupid Mac thing
+*.DS_Store
