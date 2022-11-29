@@ -66,7 +66,12 @@ module.exports = {
         return null;
     },
     getAllRoleNames: function() {
-        return allRoles.flat().map(({roleName})=> roleName)
+        return roleNames
+    },
+    getFilteredRoleNames: function(keyword) {
+        return roleNames.filter(function (role) {
+            return role.toLowerCase().includes(keyword.toLowerCase())
+        })
     },
     getRoleEmbed: async function(role) {
         const embed = await new Discord.EmbedBuilder()
