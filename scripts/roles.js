@@ -19,6 +19,8 @@ roleSub.forEach(sub => {
     allRoles = allRoles.concat(Object.values(sub));
 });
 
+const roleNames = allRoles.flat().map(({roleName})=> roleName).sort()
+
 let numRoles = 0;
 let rolesIG=[];
 
