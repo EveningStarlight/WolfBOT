@@ -12,5 +12,11 @@
   "dependencies": {
     "discord.js": "^14.6.0",
     "dotenv": "^16.0.3"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "semi": false,
+    "singleQuote": true
   }
 }
