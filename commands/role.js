@@ -12,9 +12,17 @@ module.exports = {
             .setAutocomplete(true)),
 
   async autocomplete(interaction) {
-	const focusedValue = interaction.options.getFocused();
-	const choices = rolesFile.getAllRoleNames()
-	const filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
+    const focusedValue = interaction.options.getFocused();
+    const choices = rolesFile.getAllRoleNames()
+    filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
+    if(focusedValue.length > 1){
+        filtered = choices.filter(function (choice) { return choice.toLowerCase().includes(focusedValue.toLowerCase()); });;
+        console.log(focusedValue);
+    }
+    else{
+        filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
+    }
+	
 	await interaction.respond(
 		filtered.map(choice => ({ name: choice, value: choice })),
 	);
