@@ -86,8 +86,10 @@ module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plagu
         }
         return null;
     },
-
-    printRole: async function (role, channel) {
+    getAllRoleNames: function() {
+        return allRoles.flat().map(({roleName})=> roleName)
+    },
+    getRoleEmbed: async function(role) {
         const embed = await new Discord.EmbedBuilder()
             .setTitle(role.roleName)
             .setColor(0x8eb890)
@@ -97,6 +99,10 @@ module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plagu
                 { name: 'Seen as', value: role.seenAs},
                 { name: 'Objective', value: role.winCon },
             );
+        return embed
+    },
+    printRole: async function (role, channel) {
+        const embed = await this.getRoleEmbed(role)
         await channel.send({ embeds: [embed] });
     },
     assignRoles: async function (user, guild, game){
@@ -107,7 +113,7 @@ module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plagu
 
         if(this.rolesIG[numRoles].roleName == "Spy" || this.rolesIG[numRoles].roleName == "Wolf Spy"){
             spyArray.push(user);
-        } 
+        }
 
         if (this.rolesIG[numRoles].channels != null) {
             for (channelName of this.rolesIG[numRoles].channels) {
@@ -161,7 +167,7 @@ module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plagu
             else{
                 let roleType = this.roleData[role.Main];
                 if (role.Sub != null && role.Sub != 'Random') {	roleType =  roleType[role.Sub];	}
-                randomRole(roleType);  
+                randomRole(roleType);
             }
             if(role.Main == 'Werewolf'){
                 wolfGame = true;
