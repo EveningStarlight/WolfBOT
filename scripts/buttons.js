@@ -14,7 +14,7 @@ async function joinLobby(interaction) {
 
     if (!game.lobby.players.includes(interaction.user)) {
         game.lobby.players.push(interaction.user)
-        embed = await game.lobby.embed()
+        const embed = await game.lobby.embed()
 
         interaction.update({embeds:embed})
     } else {
@@ -29,7 +29,7 @@ async function leaveLobby(interaction) {
         game.lobby.players =  game.lobby.players.filter(function (user) {
             return user != interaction.user
         })
-        embed = await game.lobby.embed()
+        const embed = await game.lobby.embed()
 
         interaction.update({embeds:embed})
     } else {

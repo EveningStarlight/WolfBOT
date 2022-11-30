@@ -1,8 +1,5 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const { MessageEmbed } = require('discord.js');
-
-const roles = [];
 
 // Grab all the role files from the role directory
 let roleJS = require('./roles/index.js');
@@ -89,18 +86,20 @@ module.exports = {
         const embed = await this.getRoleEmbed(role)
         await channel.send({ embeds: [embed] });
     },
+    /*
     assignRoles: async function (user, guild, game){
         user.role = this.rolesIG[numRoles];
         user.channel.send("Your role is:");
         this.printRole(this.rolesIG[numRoles], user.channel);
         console.log(user.displayName+" has been assigned "+this.rolesIG[numRoles].roleName);
 
+        const spyArray = []
         if(this.rolesIG[numRoles].roleName == "Spy" || this.rolesIG[numRoles].roleName == "Wolf Spy"){
             spyArray.push(user);
         }
 
         if (this.rolesIG[numRoles].channels != null) {
-            for (channelName of this.rolesIG[numRoles].channels) {
+            for (const channelName of this.rolesIG[numRoles].channels) {
                 if (game.channels[channelName] == null) {
                     await createChannel(guild, discordChannels[channelName]).then( () => {
                         game.channels[channelName].overwritePermissions(user, discordChannels[channelName].rolePermission);
@@ -193,7 +192,8 @@ module.exports = {
             if(player.id === user.id){
                 player.role = role;
             }
-        });;
+        });
         console.log(user.displayName+" has been changed to "+role.roleName);
     }
+    */
 };

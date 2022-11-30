@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 let game = null
 
@@ -19,14 +19,14 @@ function createGame() {
     }
 }
 
-function quiteGame() {
+function quitGame() {
     game = null
 }
 
 
 async function getLobbyEmbed() {
 
-    playerList = game.lobby.players.length>0 ? game.lobby.players.join(", ") : 'None Yet!'
+    const playerList = game.lobby.players.length>0 ? game.lobby.players.join(", ") : 'None Yet!'
 
     const embed = await new EmbedBuilder()
         .setTitle("Lobby")

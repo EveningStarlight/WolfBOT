@@ -7,10 +7,10 @@ module.exports = {
     .setDescription("Starts a new game of Werewolf"),
 
   async execute(interaction) {
-    components = getComponents()
+    const components = getComponents()
 
-    game = getGame()
-    embeds = await game.lobby.embed()
+    const game = getGame()
+    const embeds = await game.lobby.embed()
 
     const message = {
         "content": "Let's have a game of werewolf!",

@@ -2,9 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Events, Client, Collection, GatewayIntentBits } = require('discord.js')
 require('dotenv/config')
-const rolesFile = require('./scripts/roles.js');
 const { processButton } = require('./scripts/buttons.js')
-
 
 const client = new Client({
   intents: [
@@ -68,42 +66,22 @@ client.on('ready', () => {
     }, 10000);
 })
 
-client.on('messageCreate', (message) => {
-
-  const channel = message.channel;
-
-  if (message.content.substring(0, 1) == '!') {
-      var args = message.content.substring(1).split(' ');
-      var cmd = args[0];
-      cmd = cmd.toLowerCase();
-      if (cmd === 'ping') {
-        message.reply('pong')
-      }
-      else if(cmd === 'role'){
-        role = rolesFile.roleCheck(message.content.slice(6));
-        if (role != null) {
-            rolesFile.printRole(role, channel);
-        }
-      }
-    }
-})
-
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
 
         const command = interaction.client.commands.get(interaction.commandName);
 
-    	if (!command) {
-    		console.error(`No command matching ${interaction.commandName} was found.`);
-    		return;
-    	}
+      if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+      }
 
-    	try {
-    		await command.execute(interaction);
-    	} catch (error) {
-    		console.error(error);
-    		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    	}
+      try {
+        await command.execute(interaction);
+      } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      }
     } else if (interaction.isAutocomplete()) {
 		const command = interaction.client.commands.get(interaction.commandName);
 
@@ -118,8 +96,8 @@ client.on(Events.InteractionCreate, async interaction => {
 			console.error(error);
 		}
 	} else if (interaction.isButton()) {
-    	processButton(interaction);
-    }
+    processButton(interaction);
+  }
 });
 
 

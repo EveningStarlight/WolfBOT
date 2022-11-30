@@ -17,6 +17,6 @@ module.exports = {
 
 
   async execute(interaction) {
-    helper.execute(interaction, ephemeral=true)
+    helper.execute(interaction, true)
   }
 };

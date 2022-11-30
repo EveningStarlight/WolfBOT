@@ -15,7 +15,6 @@ module.exports = {
       helper.autocomplete(interaction)
     },
 
-
     async execute(interaction) {
       helper.execute(interaction)
     }

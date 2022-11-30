@@ -3,7 +3,7 @@ const rolesFile = require('../../scripts/roles.js');
 module.exports = {
     autocomplete: async function autocomplete(interaction) {
       const focusedValue = interaction.options.getFocused();
-      filtered = rolesFile.getFilteredRoleNames(focusedValue).splice(0,25)
+      const filtered = rolesFile.getFilteredRoleNames(focusedValue).splice(0,25)
 
       await interaction.respond(
           filtered.map(choice => ({ name: choice, value: choice })),
@@ -13,7 +13,7 @@ module.exports = {
     execute: async function execute(interaction, ephemeral=false) {
       const roleName = interaction.options.getString('name') ?? "error";
 
-      role = rolesFile.roleCheck(roleName);
+      const role = rolesFile.roleCheck(roleName);
 
       if (role != null) {
           const embed = await rolesFile.getRoleEmbed(role);
