@@ -16,7 +16,7 @@ module.exports = {
     const choices = rolesFile.getAllRoleNames()
     filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
     if(focusedValue.length > 1){
-        filtered = choices.filter(function (choice) { return choice.toLowerCase().includes(focusedValue.toLowerCase()); });;
+        filtered = choices.filter(function (choice) { return choice.toLowerCase().includes(focusedValue.toLowerCase())});
         console.log(focusedValue);
     }
     else{
