@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prettier": "npx prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -15,8 +16,12 @@
   },
   "prettier": {
     "trailingComma": "es5",
-    "tabWidth": 4,
+    "tabWidth": 2,
     "semi": false,
     "singleQuote": true
+  },
+  "devDependencies": {
+    "eslint": "^8.28.0",
+    "prettier": "2.8.0"
   }
 }
