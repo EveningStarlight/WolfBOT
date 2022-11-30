@@ -2,40 +2,10 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const { MessageEmbed } = require('discord.js');
 
-//ROLES SCRIPT
-const seer = require('./roles/seer.js');
-const cryogenicist = require('./roles/cryogenicist.js');
-const arsonist = require('./roles/arsonist.js');
-const massmurderer = require('./roles/massmurderer.js');
-const plaguemaster = require('./roles/plaguemaster.js');
-const rioters = require('./roles/rioters.js');
-const amnesiac = require('./roles/amnesiac.js');
-const geisha = require('./roles/geisha.js');
-const guardianangel = require('./roles/guardianangel.js');
-const auraseer = require('./roles/auraseer.js');
-const dreamer = require('./roles/dreamer.js');
-const oracle = require('./roles/oracle.js');
-const tracker = require('./roles/tracker.js');
-const watcher = require('./roles/watcher.js');
-const harlot = require('./roles/harlot.js');
-const bodyguard = require('./roles/bodyguard.js');
-const chronomancer = require('./roles/chronomancer.js');
-const hero = require('./roles/hero.js');
-const escort = require('./roles/escort.js');
-const spellcaster = require('./roles/spellcaster.js');
-const transporter = require('./roles/transporter.js');
-const sorcerer = require('./roles/sorcerer.js');
-const sheddingwolf = require('./roles/sheddingwolf.js');
-const concubine = require('./roles/concubine.js');
-const gremlin = require('./roles/gremlin.js');
-const mysticwolf = require('./roles/mysticwolf.js');
-const witch = require('./roles/witch.js');
-const nostradamus = require('./roles/nostradamus.js');
-const beholder = require('./roles/beholder.js');
-const werewolf = require('./roles/werewolf.js');
-const hungerer = require('./roles/hungerer.js');
-const vigilante = require('./roles/vigilante.js');
-const hunter = require('./roles/hunter.js');
+const roles = [];
+
+// Grab all the role files from the role directory
+let roleJS = require('./roles/index.js');
 
 //ROLES JSON
 let allRoles = new Array();
@@ -77,7 +47,14 @@ function shuffle(array) {
 }
 
 
-module.exports = {numRoles,rolesIG,seer,cryogenicist,arsonist,massmurderer,plaguemaster,rioters,amnesiac,geisha,guardianangel,auraseer,dreamer,oracle,tracker,watcher,harlot,bodyguard,chronomancer,hero,escort,spellcaster,transporter,sorcerer,sheddingwolf,concubine,gremlin,mysticwolf,witch,nostradamus,beholder,werewolf,hungerer,vigilante,hunter,allRoles,roleData,roleSuper,roleSub,
+module.exports = {
+    numRoles,
+    rolesIG,
+    roleJS,
+    allRoles,
+    roleData,
+    roleSuper,
+    roleSub,
     roleCheck: function (roleString) {
         for (let i = 0; i < allRoles.length; i++) {
             if (allRoles[i].roleName.toLowerCase() == roleString.toLowerCase()) {
