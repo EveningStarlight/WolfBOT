@@ -4,16 +4,10 @@ orbs:
   prettier: miyajan/prettier@0.3.0
   eslint: arrai/eslint@7.4.0
 
-jobs:
-  run-prettier:
-    - prettier/check-javascript
-    - prettier/check-markdown
-  run-linter:
-    - eslint/eslint:
-      files: "./**"
-
 workflows:
   check-codebase:
     jobs:
-      - run-prettier
-      - run-linter
+      - prettier/check-javascript
+      - prettier/check-markdown
+      - eslint/eslint:
+        files: "./**"
