@@ -9,4 +9,5 @@ workflows:
     jobs:
       - prettier/check-javascript
       - prettier/check-markdown
-      - prettier/check-yaml
+      - eslint
+        files: ./**
