@@ -1,4 +1,4 @@
-const { getGame } = require("./game.js")
+const { getGame } = require('./game.js')
 
 function processButton(interaction) {
     if (interaction.customId == 'joinLobby') {
@@ -14,11 +14,14 @@ async function joinLobby(interaction) {
 
     if (!game.lobby.players.includes(interaction.user)) {
         game.lobby.players.push(interaction.user)
-        embed = await game.lobby.embed()
+        const embed = await game.lobby.embed()
 
-        interaction.update({embeds:embed})
+        interaction.update({ embeds: embed })
     } else {
-        interaction.reply({content:"You are already in the lobby!", ephemeral:true})
+        interaction.reply({
+            content: 'You are already in the lobby!',
+            ephemeral: true,
+        })
     }
 }
 
@@ -26,17 +29,20 @@ async function leaveLobby(interaction) {
     const game = getGame()
 
     if (game.lobby.players.includes(interaction.user)) {
-        game.lobby.players =  game.lobby.players.filter(function (user) {
+        game.lobby.players = game.lobby.players.filter(function (user) {
             return user != interaction.user
         })
-        embed = await game.lobby.embed()
+        const embed = await game.lobby.embed()
 
-        interaction.update({embeds:embed})
+        interaction.update({ embeds: embed })
     } else {
-        interaction.reply({content:"You aren't in the lobby!", ephemeral:true})
+        interaction.reply({
+            content: "You aren't in the lobby!",
+            ephemeral: true,
+        })
     }
 }
 
 module.exports = {
-    processButton: processButton
+    processButton: processButton,
 }
