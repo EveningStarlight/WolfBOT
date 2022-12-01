@@ -9,5 +9,4 @@ workflows:
     jobs:
       - prettier/check-javascript
       - prettier/check-markdown
-      - eslint/eslint:
-        files: "./**"
+      - eslint/eslint
