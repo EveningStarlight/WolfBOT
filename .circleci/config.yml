@@ -10,4 +10,4 @@ workflows:
       - prettier/check-javascript
       - prettier/check-markdown
       - eslint
-        files: ./**
+        files: "./**"
