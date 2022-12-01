@@ -7,6 +7,6 @@ orbs:
 workflows:
   check-codebase:
     jobs:
-      - check-javascript
-      - check-markdown
-      - check-yaml
+      - prettier/check-javascript
+      - prettier/check-markdown
+      - prettier/check-yaml
