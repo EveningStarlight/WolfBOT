@@ -1,445 +1,412 @@
 {
-   "Village":{
-      "Seer":[
-         {
-            "roleName":"Seer",
-            "description":"Wake up each night and learn if selected player is good, bad, or unknown.",
-            "category":"Seer",
-			"seenAs":"Good",
-			"winCon":"Kill all Miscreants"
-         }
-      ],
-      "Negative":[
-        {
-            "roleName":"Princess",
-            "description":"If you die the next day phase is skipped.",
-            "category":"Village Negative",
-			"seenAs":"Good",
-			"winCon":"Kill all Miscreants"
-         },
-         {
-            "roleName":"Cursed",
-            "description":"You are a Villager until you are attack by Werewolves, at which time you become a Werewolf.",
-            "category":"Village Negative",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves",
-			"altRole":"Werewolf"
-         },
-         {
-            "roleName":"Wild Child",
-            "description":"On the first night choose one person to be your role model if your role model  dies you become a Werewolf. Until then you are a Villager.",
-            "category":"Village Negative",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves",
-			"altRole":"Werewolf"
-         },
-         {
-            "roleName":"Lycan",
-            "description":"You are a Villager but appear to be bad to Seers and PI.",
-            "category":"Village Negative",
-			"seenAs":"Bad",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Harlot",
-            "description":"You must select someone each night to lie with. If the selected person is a Werewolf you die, or if the person you selected is attacked by a Werewolf you die.",
-            "category":"Village Negative",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         }
-      ],
-      "Support":[
-         {
-            "roleName":"Transporter",
-            "description":"Each night select two players. Any actions performed on the one player will be performed on the other, and vice versa.",
-            "category":"Village Support",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Paranoid Bat Owner",
-            "description":"Anyone who visits you at night will not be able to talk the next morning.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Monk",
-            "description":"Immune to night attacks until nominated to the stand.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-          {
-            "roleName":"Zappy Dan Lightning Man",
-            "description":"Start the game with one taser. You see who targets you at night as long as you have the taser, and may chose to zap the person who targeted you (roleblocking them that and the next night). You lose the taser.",
-            "category":"Village Support",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Diseased",
-            "description":"If you are killed by the Werewolves, the Werewolves do not get to attack the following night.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Beholder",
-            "description":"The first night you learn who the seer is.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Escort",
-            "description":"Each night choose a player, that player's night action does not happen.",
-            "category":"Village Support",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Medium",
-            "description":"You can commune with the dead through a special channel.",
-            "category":"Village Support",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves",
-			"channels": 
-			[
-				"medium"
-			]
-         }
-      ],
-      "Protective":[
-         {
-            "roleName":"Witch",
-            "description":"During the night the witch can either kill or heal one other player. The witch can use only one of the two in a night, and each are one time only if successfully healed.",
-            "category":"Village Killing, Village Protective",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Bodyguard",
-            "description":"Choose a different player each night to protect. That player cannot be killed that night.",
-            "category":"Village Protective",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Hero",
-            "description":"You can choose one other person to protect at night, but instead of the victim dying, you and the attacker both die.",
-            "category":"Village Protective",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Chronomancer",
-            "description":"Each night you may select two other players. If the first player would die instead the second player dies. The first player will die in two nights.",
-            "category":"Village Protective",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         }
-      ],
-      "Investigative":[
-         {
-            "roleName":"Undercover Wolf",
-            "description":"You can listen in on the Werewolves chat.",
-            "category":"Village Investigative",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves",
-			"channels": 
-			[
-				"undercover"
-			]
-         },
-         {
-            "roleName":"Tracker",
-            "description":"Wake up each night and select a player, see who that player targeted if anyone.",
-            "category":"Village Investigative",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Watcher",
-            "description":"Wake up each night and select a player, see who targeted that player if anyone.",
-            "category":"Village Investigative",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Aura Seer",
-            "description":"Each night select two players other than yourself. Learn if they are on the same team or not.",
-            "category":"Village Investigative",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Oracle",
-            "description":"The oracle selects a person each night, if that person dies their role is revealed.",
-            "category":"Village Investigative",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-        {
-            "roleName":"Dreamer",
-            "description":"Each night, choose a player you learn one Village role and one non-Village role. One of which is that player's actual role.",
-            "category":"Village Investigative",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         }
-      ],
-      "Killing":[
-
-         {
-            "roleName":"War Veteran",
-            "description":"If anyone visits you, they die and you do not.",
-            "category":"Village Killing",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Hunter",
-            "description":"If you are killed, choose someone to kill before you die.",
-            "category":"Village Killing",
-			"seenAs":"Good",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Executioner",
-            "description":"During the day you may reveal yourself. If you do you must immediatly eliminate one person without vote. This uses the Village's lynching that day.",
-            "category":"Village Killing",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Vigilante",
-            "description":"You can kill up to two players in the game, one per night. If you shoot someone on the good team you will shoot yourself the next night.",
-            "category":"Village Killing",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         },
-         {
-            "roleName":"Witch",
-            "description":"During the night you can either kill or heal one other player other than themselves. You can use only one of the two in a night, and each are one time only. If your target is not attacked you get your heal back.",
-            "category":"Village Killing, Village Protective",
-			"seenAs":"Unknown",
-			"winCon":"Kill all Werewolves"
-         }
-      ]
-   },
-   "Werewolf":{
-      "Werewolf":[
-         {
-            "roleName":"Werewolf",
-            "description":"Wakes up each night and selects someone to kill with the other Werewolves.",
-            "category":"Werewolf",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         }
-      ],
-      "Killing":[
-         {
-            "roleName":"Ravenous Wolf",
-            "description":"Wake with the Werewolves, if you are the last killing role on the Werewolves team you may kill two players each night.",
-            "category":"Werewolf Killing",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Hungerer",
-            "description":"Wakes with the werewolves. If your target is not dead you kill an extra player the next night.",
-            "category":"Werewolf Killing",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Oni",
-            "description":"Wake with the werewolves. If you are the last killing role on the Werewolves team, your attacks ignore protection.",
-            "category":"Werewolf Killing",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Monk Wolf",
-            "description":"Wakes with the Werewolves. If no one is lynched during the day, you are seen as good during the night.",
-            "category":"Werewolf Killing",
-			"seenAs":"Bad/Good",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         }
-      ],
-      "Support":[
-         {
-            "roleName":"Mystic Wolf",
-            "description":"Wakes up every night with the Werewolves, and again after the Werewolves on their own to choose someone to keep silent the day after.",
-            "category":"Werewolf Support",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Sorcerer",
-            "description":"Each night, wake up and select a person. You learn their exact role. You do not wake with the Werewolves.",
-            "category":"Werewolf Support",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
-         },
-         {
-            "roleName":"Shedding Wolf",
-            "description":"Wakes up each night with the Werewolves. Wake up again after the Werewolves and select a player to appear as bad to the seer.",
-            "category":"Werewolf Support",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Concubine",
-            "description":"Wake with the Werewolves. Wake again to choose a player, that player's night action does not happen.",
-            "category":"Werewolf Support",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves",
-			"channels": 
-			[
-				"werewolf"
-			]
-         },
-         {
-            "roleName":"Gremlin",
-            "description":"Do not wake with the Werewolves. Each night select a player, that player's role will be revealed to the other Werewolves, the player revealed will be notified.",
-            "category":"Werewolf Support",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Werewolves"
-         }
-          ]
-   },
-   "Neutral":{
-      "True":[
-         {
-            "roleName":"Geisha",
-            "description":"Each night select a player other than yourself to protect, if you protected someone from a different faction as the night before you also protect yourself.",
-            "category":"True Neutral",
-			"seenAs":"Unknown",
-			"winCon":"Survive till the end"
-         },
-         {
-            "roleName":"Guardian Angel",
-            "description":"Select a player on the first night. During the night you can protect that player, however you can only protect them twice in a game. You can use this ability even if you are dead.",
-            "category":"True Neutral",
-			"seenAs":"Unknown",
-			"winCon":"The person you selected survives"
-         },
-        {
-            "roleName":"Amnesiac",
-            "description":"Select any player who died, you will become their role. Whatever role you take will be announced the next morning.",
-            "category":"True Neutral",
-			"seenAs":"Unknown",
-			"winCon":"Transform and fulfil your new role's objective"
-         }
-        
-      ],
-      "Evil":[
-
-         {
-            "roleName":"Nostradamus",
-            "description":"Predict the winning team on the first night. Once per game on a night you can make yourself immune to all attacks.",
-            "category":"Neutral Evil",
-			"seenAs":"Unknown",
-			"winCon":"Survive to the end and have your predicted team win. You win instead of the chosen team."
-         },
-        {
-            "roleName":"Tanner",
-            "description":"You only win if you are lynched. You can then take revenge on one of the people that voted to kill you.",
-            "category":"Neutral Evil",
-			"seenAs":"Bad",
-			"winCon":"Get yourself lynched"
-         },
-         {
-            "roleName":"Mortician",
-            "description":"Select a player on the first night. If the person you selected dies any other way than lynching you must win by lynching yourself.",
-            "category":"Neutral Evil",
-			"seenAs":"Unknown",
-			"winCon":"Get your target lynched"
-         },
-         {
-            "roleName":"Doomsayer",
-            "description":"Each night your clock will tick down and all Villagers will be notified of this. The clock will start at half the number of players rounded down minus one.",
-            "category":"Neutral Evil",
-			"seenAs":"Unknown",
-			"winCon":"Survive to see your clock reach zero"
-         },
-         {
-            "roleName":"Cryogenicist",
-            "description":"Each night select someone to cover in water, or point at yourself to freeze all people covered in water. A frozen player cannot be killed at night, talk or use their night action.",
-            "category":"Neutral Evil",
-			"seenAs":"Unknown",
-			"winCon":"Freeze all players"
-         }
-      ],
-      "Killing":[
-         {
-            "roleName":"Arsonist",
-            "description":"Each night select a player to douse or point at yourself to kill all doused players.",
-            "category":"Neutral Killing",
-			"seenAs":"Bad",
-			"winCon":"Be the last person alive"
-         },
-         {
-            "roleName":"Plague Master",
-            "description":"Select a player each night, infect them. An infected player dies the night after. (This cannot be prevented except by immunity.)",
-            "category":"Neutral Killing",
-			"seenAs":"Bad",
-			"winCon":"Be the last person alive"
-         },
-         {
-            "roleName":"Mass Murderer",
-            "description":"Each night select someone to kill also kill everyone who visits that person.",
-            "category":"Neutral Killing",
-			"seenAs":"Bad",
-			"winCon":"Be the last person alive"
-         },
-         {
-            "roleName":"Rioters",
-            "description":"Each night select someone if they are on the Villager team remove their ability, they become a rioter. If they aren't they will die instead.",
-            "category":"Neutral Killing",
-			"seenAs":"Unknown",
-			"winCon":"Have all players join the riot"
-         }
-      ]
-   },
-   "Vampire":{
-      "vampire":[
-         {
-            "roleName":"Vampire",
-            "description":"Attack another player each night. That player doesn't die during the night, but dies the next morning if anyone nominated up to stand.",
-            "category":"Vampire",
-			"seenAs":"Bad",
-			"winCon":"Kill all non-Vampires"
-         }
-      ]
-   }
+    "Village": {
+        "Seer": [
+            {
+                "roleName": "Seer",
+                "description": "Wake up each night and learn if selected player is good, bad, or unknown.",
+                "category": "Seer",
+                "seenAs": "Good",
+                "winCon": "Kill all Miscreants"
+            }
+        ],
+        "Negative": [
+            {
+                "roleName": "Princess",
+                "description": "If you die the next day phase is skipped.",
+                "category": "Village Negative",
+                "seenAs": "Good",
+                "winCon": "Kill all Miscreants"
+            },
+            {
+                "roleName": "Cursed",
+                "description": "You are a Villager until you are attack by Werewolves, at which time you become a Werewolf.",
+                "category": "Village Negative",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves",
+                "altRole": "Werewolf"
+            },
+            {
+                "roleName": "Wild Child",
+                "description": "On the first night choose one person to be your role model if your role model  dies you become a Werewolf. Until then you are a Villager.",
+                "category": "Village Negative",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves",
+                "altRole": "Werewolf"
+            },
+            {
+                "roleName": "Lycan",
+                "description": "You are a Villager but appear to be bad to Seers and PI.",
+                "category": "Village Negative",
+                "seenAs": "Bad",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Harlot",
+                "description": "You must select someone each night to lie with. If the selected person is a Werewolf you die, or if the person you selected is attacked by a Werewolf you die.",
+                "category": "Village Negative",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            }
+        ],
+        "Support": [
+            {
+                "roleName": "Transporter",
+                "description": "Each night select two players. Any actions performed on the one player will be performed on the other, and vice versa.",
+                "category": "Village Support",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Paranoid Bat Owner",
+                "description": "Anyone who visits you at night will not be able to talk the next morning.",
+                "category": "Village Support",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Monk",
+                "description": "Immune to night attacks until nominated to the stand.",
+                "category": "Village Support",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Zappy Dan Lightning Man",
+                "description": "Start the game with one taser. You see who targets you at night as long as you have the taser, and may chose to zap the person who targeted you (roleblocking them that and the next night). You lose the taser.",
+                "category": "Village Support",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Diseased",
+                "description": "If you are killed by the Werewolves, the Werewolves do not get to attack the following night.",
+                "category": "Village Support",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Beholder",
+                "description": "The first night you learn who the seer is.",
+                "category": "Village Support",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Escort",
+                "description": "Each night choose a player, that player's night action does not happen.",
+                "category": "Village Support",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Medium",
+                "description": "You can commune with the dead through a special channel.",
+                "category": "Village Support",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves",
+                "channels": ["medium"]
+            }
+        ],
+        "Protective": [
+            {
+                "roleName": "Witch",
+                "description": "During the night the witch can either kill or heal one other player. The witch can use only one of the two in a night, and each are one time only if successfully healed.",
+                "category": "Village Killing, Village Protective",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Bodyguard",
+                "description": "Choose a different player each night to protect. That player cannot be killed that night.",
+                "category": "Village Protective",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Hero",
+                "description": "You can choose one other person to protect at night, but instead of the victim dying, you and the attacker both die.",
+                "category": "Village Protective",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Chronomancer",
+                "description": "Each night you may select two other players. If the first player would die instead the second player dies. The first player will die in two nights.",
+                "category": "Village Protective",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            }
+        ],
+        "Investigative": [
+            {
+                "roleName": "Undercover Wolf",
+                "description": "You can listen in on the Werewolves chat.",
+                "category": "Village Investigative",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves",
+                "channels": ["undercover"]
+            },
+            {
+                "roleName": "Tracker",
+                "description": "Wake up each night and select a player, see who that player targeted if anyone.",
+                "category": "Village Investigative",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Watcher",
+                "description": "Wake up each night and select a player, see who targeted that player if anyone.",
+                "category": "Village Investigative",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Aura Seer",
+                "description": "Each night select two players other than yourself. Learn if they are on the same team or not.",
+                "category": "Village Investigative",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Oracle",
+                "description": "The oracle selects a person each night, if that person dies their role is revealed.",
+                "category": "Village Investigative",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Dreamer",
+                "description": "Each night, choose a player you learn one Village role and one non-Village role. One of which is that player's actual role.",
+                "category": "Village Investigative",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            }
+        ],
+        "Killing": [
+            {
+                "roleName": "War Veteran",
+                "description": "If anyone visits you, they die and you do not.",
+                "category": "Village Killing",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Hunter",
+                "description": "If you are killed, choose someone to kill before you die.",
+                "category": "Village Killing",
+                "seenAs": "Good",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Executioner",
+                "description": "During the day you may reveal yourself. If you do you must immediatly eliminate one person without vote. This uses the Village's lynching that day.",
+                "category": "Village Killing",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Vigilante",
+                "description": "You can kill up to two players in the game, one per night. If you shoot someone on the good team you will shoot yourself the next night.",
+                "category": "Village Killing",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            },
+            {
+                "roleName": "Witch",
+                "description": "During the night you can either kill or heal one other player other than themselves. You can use only one of the two in a night, and each are one time only. If your target is not attacked you get your heal back.",
+                "category": "Village Killing, Village Protective",
+                "seenAs": "Unknown",
+                "winCon": "Kill all Werewolves"
+            }
+        ]
+    },
+    "Werewolf": {
+        "Werewolf": [
+            {
+                "roleName": "Werewolf",
+                "description": "Wakes up each night and selects someone to kill with the other Werewolves.",
+                "category": "Werewolf",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            }
+        ],
+        "Killing": [
+            {
+                "roleName": "Ravenous Wolf",
+                "description": "Wake with the Werewolves, if you are the last killing role on the Werewolves team you may kill two players each night.",
+                "category": "Werewolf Killing",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Hungerer",
+                "description": "Wakes with the werewolves. If your target is not dead you kill an extra player the next night.",
+                "category": "Werewolf Killing",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Oni",
+                "description": "Wake with the werewolves. If you are the last killing role on the Werewolves team, your attacks ignore protection.",
+                "category": "Werewolf Killing",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Monk Wolf",
+                "description": "Wakes with the Werewolves. If no one is lynched during the day, you are seen as good during the night.",
+                "category": "Werewolf Killing",
+                "seenAs": "Bad/Good",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            }
+        ],
+        "Support": [
+            {
+                "roleName": "Mystic Wolf",
+                "description": "Wakes up every night with the Werewolves, and again after the Werewolves on their own to choose someone to keep silent the day after.",
+                "category": "Werewolf Support",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Sorcerer",
+                "description": "Each night, wake up and select a person. You learn their exact role. You do not wake with the Werewolves.",
+                "category": "Werewolf Support",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves"
+            },
+            {
+                "roleName": "Shedding Wolf",
+                "description": "Wakes up each night with the Werewolves. Wake up again after the Werewolves and select a player to appear as bad to the seer.",
+                "category": "Werewolf Support",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Concubine",
+                "description": "Wake with the Werewolves. Wake again to choose a player, that player's night action does not happen.",
+                "category": "Werewolf Support",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves",
+                "channels": ["werewolf"]
+            },
+            {
+                "roleName": "Gremlin",
+                "description": "Do not wake with the Werewolves. Each night select a player, that player's role will be revealed to the other Werewolves, the player revealed will be notified.",
+                "category": "Werewolf Support",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Werewolves"
+            }
+        ]
+    },
+    "Neutral": {
+        "True": [
+            {
+                "roleName": "Geisha",
+                "description": "Each night select a player other than yourself to protect, if you protected someone from a different faction as the night before you also protect yourself.",
+                "category": "True Neutral",
+                "seenAs": "Unknown",
+                "winCon": "Survive till the end"
+            },
+            {
+                "roleName": "Guardian Angel",
+                "description": "Select a player on the first night. During the night you can protect that player, however you can only protect them twice in a game. You can use this ability even if you are dead.",
+                "category": "True Neutral",
+                "seenAs": "Unknown",
+                "winCon": "The person you selected survives"
+            },
+            {
+                "roleName": "Amnesiac",
+                "description": "Select any player who died, you will become their role. Whatever role you take will be announced the next morning.",
+                "category": "True Neutral",
+                "seenAs": "Unknown",
+                "winCon": "Transform and fulfil your new role's objective"
+            }
+        ],
+        "Evil": [
+            {
+                "roleName": "Nostradamus",
+                "description": "Predict the winning team on the first night. Once per game on a night you can make yourself immune to all attacks.",
+                "category": "Neutral Evil",
+                "seenAs": "Unknown",
+                "winCon": "Survive to the end and have your predicted team win. You win instead of the chosen team."
+            },
+            {
+                "roleName": "Tanner",
+                "description": "You only win if you are lynched. You can then take revenge on one of the people that voted to kill you.",
+                "category": "Neutral Evil",
+                "seenAs": "Bad",
+                "winCon": "Get yourself lynched"
+            },
+            {
+                "roleName": "Mortician",
+                "description": "Select a player on the first night. If the person you selected dies any other way than lynching you must win by lynching yourself.",
+                "category": "Neutral Evil",
+                "seenAs": "Unknown",
+                "winCon": "Get your target lynched"
+            },
+            {
+                "roleName": "Doomsayer",
+                "description": "Each night your clock will tick down and all Villagers will be notified of this. The clock will start at half the number of players rounded down minus one.",
+                "category": "Neutral Evil",
+                "seenAs": "Unknown",
+                "winCon": "Survive to see your clock reach zero"
+            },
+            {
+                "roleName": "Cryogenicist",
+                "description": "Each night select someone to cover in water, or point at yourself to freeze all people covered in water. A frozen player cannot be killed at night, talk or use their night action.",
+                "category": "Neutral Evil",
+                "seenAs": "Unknown",
+                "winCon": "Freeze all players"
+            }
+        ],
+        "Killing": [
+            {
+                "roleName": "Arsonist",
+                "description": "Each night select a player to douse or point at yourself to kill all doused players.",
+                "category": "Neutral Killing",
+                "seenAs": "Bad",
+                "winCon": "Be the last person alive"
+            },
+            {
+                "roleName": "Plague Master",
+                "description": "Select a player each night, infect them. An infected player dies the night after. (This cannot be prevented except by immunity.)",
+                "category": "Neutral Killing",
+                "seenAs": "Bad",
+                "winCon": "Be the last person alive"
+            },
+            {
+                "roleName": "Mass Murderer",
+                "description": "Each night select someone to kill also kill everyone who visits that person.",
+                "category": "Neutral Killing",
+                "seenAs": "Bad",
+                "winCon": "Be the last person alive"
+            },
+            {
+                "roleName": "Rioters",
+                "description": "Each night select someone if they are on the Villager team remove their ability, they become a rioter. If they aren't they will die instead.",
+                "category": "Neutral Killing",
+                "seenAs": "Unknown",
+                "winCon": "Have all players join the riot"
+            }
+        ]
+    },
+    "Vampire": {
+        "vampire": [
+            {
+                "roleName": "Vampire",
+                "description": "Attack another player each night. That player doesn't die during the night, but dies the next morning if anyone nominated up to stand.",
+                "category": "Vampire",
+                "seenAs": "Bad",
+                "winCon": "Kill all non-Vampires"
+            }
+        ]
+    }
 }

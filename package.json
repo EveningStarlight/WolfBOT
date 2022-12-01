@@ -1,28 +1,28 @@
 {
-  "name": "1---how-to-make-a-discord-bot-for-beginners",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prettier": "npx prettier --write .",
-    "lint": "npx eslint ."
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "discord.js": "^14.7.0",
-    "dotenv": "^16.0.3"
-  },
-  "prettier": {
-    "trailingComma": "es5",
-    "tabWidth": 2,
-    "semi": false,
-    "singleQuote": true
-  },
-  "devDependencies": {
-    "eslint": "^8.28.0",
-    "prettier": "2.8.0"
-  }
+    "name": "1---how-to-make-a-discord-bot-for-beginners",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prettier": "npx prettier --write .",
+        "lint": "npx eslint ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "discord.js": "^14.7.0",
+        "dotenv": "^16.0.3"
+    },
+    "prettier": {
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": true
+    },
+    "devDependencies": {
+        "eslint": "^8.28.0",
+        "prettier": "2.8.0"
+    }
 }
