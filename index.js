@@ -3,6 +3,8 @@ const path = require('node:path');
 const { Events, Client, Collection, GatewayIntentBits } = require('discord.js')
 require('dotenv/config')
 const rolesFile = require('./scripts/roles.js');
+const { processButton } = require('./scripts/buttons.js')
+
 
 const client = new Client({
   intents: [
@@ -115,7 +117,9 @@ client.on(Events.InteractionCreate, async interaction => {
 		} catch (error) {
 			console.error(error);
 		}
-	}
+	} else if (interaction.isButton()) {
+    	processButton(interaction);
+    }
 });
 
 
