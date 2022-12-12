@@ -4,7 +4,7 @@ const {
     ButtonStyle,
     SlashCommandBuilder,
 } = require('discord.js')
-const { getGame } = require('../scripts/game.js')
+const { Game } = require('../scripts/game.js')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,19 +12,25 @@ module.exports = {
         .setDescription('Starts a new game of Werewolf'),
 
     async execute(interaction) {
-        const components = getComponents()
+        if (Game.exists(interaction.member.guild)) {
+            interaction.reply({
+                content: 'A game has already been started!',
+                ephemeral: true,
+            })
+        } else {
+            const game = Game.get(interaction.member.guild)
+            const components = getComponents()
+            const embeds = await game.lobby.embed()
 
-        const game = getGame()
-        const embeds = await game.lobby.embed()
+            const message = {
+                content: "Let's have a game of werewolf!",
+                components: components,
+                embeds: embeds,
+            }
+            await interaction.reply(message)
 
-        const message = {
-            content: "Let's have a game of werewolf!",
-            components: components,
-            embeds: embeds,
+            game.lobby.interaction = interaction
         }
-        await interaction.reply(message)
-
-        game.lobby.interaction = interaction
     },
 }
 
@@ -42,12 +48,20 @@ function getComponents() {
                 .setLabel('Leave Lobby')
                 .setStyle(ButtonStyle.Danger)
         )
-    const row2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId('startGame')
-            .setLabel('Start Game')
-            .setStyle(ButtonStyle.Primary)
-    )
+    const row2 = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('startGame')
+                .setLabel('Start Game')
+                .setStyle(ButtonStyle.Primary)
+        )
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('quitGame')
+                .setLabel('Quit Game')
+                .setStyle(ButtonStyle.Danger)
+                .setDisabled(true)
+        )
 
     return [row1, row2]
 }
